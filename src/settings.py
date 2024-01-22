@@ -1,9 +1,12 @@
 def settings_from_file(filepath):
+    
     with open(filepath) as f:
         lines = f.readlines()
-    job_sh = lines[0].split()[1:]
-    run_str = lines[1].split()[1:]
-    cycles = lines[2].split()[1:]
+    
+    run_str = ' '.join([i for i in lines[0].split()[1:]])
+    job_sh = lines[1].split()[1:][0]
+    cycles = lines[2].split()[1:][0]
+
     return run_str, job_sh, cycles
 
 def user_settings():

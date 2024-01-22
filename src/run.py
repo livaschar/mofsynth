@@ -1,4 +1,4 @@
-from __utils__ import synth_eval, results, check_opt#, Linkers,  MOF, 
+from __utils__ import synth_eval, results, check_opt
 
 '''TO RUN THE SYNTH EVALUATION'''
 directory = 'cifs_testing'
@@ -16,8 +16,6 @@ cifs, linkers, fault = synth_eval(directory) # Lists with the cifs found in the 
 
 '''If runs have finished'''
 # txt_path = results()
-
-
 
 
 exit()

@@ -25,28 +25,6 @@ from mofid.run_mofid import cif2mofid
 from settings import user_settings, settings_from_file
 from general import copy
 import re
-# import openpyxl
-
-
-
-hard = ['OPT_tfi_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_stx_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_fog_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_lil_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_tfq_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_lim_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_stj_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_tfb_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_tfa_sym_5_mc_2_sym_3_on_2_NTN_NTN',
-'OPT_fog_sym_5_mc_2_sym_3_on_2_L_12_NTN']
-
-# wrong smiles
-fault_1 = ['OPT_lim_sym_5_mc_2_sym_3_on_2_NTN_L_12',
-           'OPT_phw_sym_5_mc_2_sym_3_on_2_NTN_L_12']
-#wrong linker
-fault_2 = ['OPT_tfa_sym_5_mc_2_sym_3_on_2_NTN_L_12',
-           'OPT_lim_sym_5_mc_2_sym_3_on_2_L_12_NTN']
-
 
 
 def synth_eval(directory):
@@ -55,11 +33,8 @@ def synth_eval(directory):
     if os.path.exists(Linkers.settings_path):
         run_str, job_sh, opt_cycles = settings_from_file(Linkers.settings_path)
     else:
-        pass
-        #run_str, job_sh, opt_cycles = user_settings()
-    
-    run_str, job_sh, opt_cycles = 'sbatch job.sh', 'job.sh', '1000'
-    
+        run_str, job_sh, opt_cycles = user_settings()
+
     Linkers.opt_settings(run_str, opt_cycles, job_sh)
     
     print(f'  \033[1;32m\nSTART OF SYNTHESIZABILITY EVALUATION\033[m')
@@ -81,18 +56,15 @@ def synth_eval(directory):
             continue
 
         copy(user_dir, mof.init_path, f"{mof.name}.cif")
+
         copy(Linkers.job_sh_path, mof.sp_path, job_sh)
 
         mof.create_supercell()
-
-        if cif[:-4] in hard:
-            os.remove(os.path.join(mof.fragmentation_path, f"{mof.name}_supercell.cif"))
-            copy(mof.cif2cell_path, mof.fragmentation_path, f"{mof.name}.cif", f"{mof.name}_supercell.cif")
-    
         mof.fragmentation()
         mof.obabel()
         mof.single_point()        
         check = mof.check_fragmentation()
+
         if check == False:
             question = input('Do you want to skip this MOF? [y/n]: ')
             if question.lower() == 'y':
@@ -107,7 +79,7 @@ def synth_eval(directory):
     for linker in Linkers.instances:
         print(f'\n - \033[1;34mLinker under study: {linker.smiles} of {linker.mof_name}\033[m -')
         print(f'\n \033[1;31mOptimization calculation\033[m')
-        linker.optimize()
+        linker.optimize(rerun = False)
     
     with open('cifs.pkl', 'wb') as file:
         pickle.dump(MOF.instances, file)
@@ -132,36 +104,7 @@ def results():
     for linker in Linkers.converged:
         linker.define_linker_opt_energies()
         Linkers.instances.append(linker)
-        # if linker.mof_name in fault_1:
-        #     print("FAULT1: ", linker.mof_name)
-        #     print("smiles: ", linker.smile)
     
-    for linker in linkers:
-        if linker.mof_name in fault_1:
-            linker.smiles = '[O-]C(=O)c1cc(cc(c1)C(=O)[O-])c1ccc(cc1)c1cc(cc(c1)C(=O)[O-])C(=O)[O-]'
-            linker.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', linker.smiles)
-        
-        if linker.mof_name in fault_2:
-            if linker.mof_name == fault_2[0]:
-                linker.opt_energy = 0.4145538622 #define manually
-                linker.smiles = '[O-]C(=O)c1cc(cc(c1)C(=O)[O-])c1ccc(cc1)c1cc(cc(c1)C(=O)[O-])C(=O)[O-]'
-                linker.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', linker.smiles)
-            elif linker.mof_name == fault_2[1]:
-                linker.opt_energy == 0.5855769699 #define manually
-                linker.smiles = '[O-]C(=O)c1ccc(cc1)c1cc(cc(c1)c1ccc(cc1)C(=O)[O-])c1cc(cc(c1)c1ccc(cc1)C(=O)[O-])c1ccc(cc1)C(=O)[O-]'
-                linker.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', linker.smiles)
-            
-    for mof in cifs:
-        if mof.name in fault_1:
-            mof.linker_smiles = '[O-]C(=O)c1cc(cc(c1)C(=O)[O-])c1ccc(cc1)c1cc(cc(c1)C(=O)[O-])C(=O)[O-]'
-    
-        if mof.name in fault_2:
-            if mof.name == fault_2[0]:
-                mof.linker_smiles = '[O-]C(=O)c1cc(cc(c1)C(=O)[O-])c1ccc(cc1)c1cc(cc(c1)C(=O)[O-])C(=O)[O-]'
-            elif mof.name == fault_2[1]:
-                mof.linker_smiles = '[O-]C(=O)c1ccc(cc1)c1cc(cc(c1)c1ccc(cc1)C(=O)[O-])c1cc(cc(c1)c1ccc(cc1)C(=O)[O-])c1ccc(cc1)C(=O)[O-]'        
-    
- 
     energy_dict = Linkers.find_the_best_opt_energies()
 
     MOF.analyse(cifs, linkers, energy_dict)
@@ -190,10 +133,6 @@ class MOF:
         self.name = name
         self.initialize_paths()
 
-        # self.linker_smiles = None
-        # self.linker_sp_energy = None
-        # self.rmsd = None
-        # self.de = None
     
     def initialize_paths(self):
         self.init_path = os.path.join(MOF.synth_path, self.name)
@@ -276,31 +215,6 @@ class MOF:
         
         print(f'\n \033[1;31mSinlge point linker calculation done\033[m ')
     
-    # def turbomole_opt(self, rerun = False):    
-    #     """ OPT CALCULATION """
-    #     copy(self.turbomole_path, self.opt_path, "linker.xyz")
-    #     os.chdir(self.opt_path)
-    #     print(f'\n \033[1;31mOptimization calculation\033[m')
-    #     if rerun:
-    #         os.system('rm *')
-    #     run_str_sp = "bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
-    #     try:
-    #         os.system(run_str_sp + " > /dev/null 2>&1")
-    #     except Exception as e:
-    #         print(f"An error occurred while running the command for turbomole: {str(e)}")
-    #     with open("control", 'r') as f:
-    #         lines = f.readlines()
-    #     words = lines[2].split()
-    #     words[0] = str(self.opt_cycles)
-    #     lines[2] = ' '.join(words) +'\n'
-    #     with open("control",'w') as f:
-    #         f.writelines(lines)
-    #     try:
-    #         os.system(MOF.run_str)
-    #     except Exception as e:
-    #         print(f"An error occurred while running the command for turbomole: {str(e)}")
-    #     os.chdir(MOF.src_dir)
-    
     def check_fragmentation(self):
         file_size = os.path.getsize(os.path.join(self.fragmentation_path,"Output/MetalOxo/linkers.cif"))
         if file_size < 550:
@@ -308,16 +222,6 @@ class MOF:
             return False
         print(f'\n \033[1;31m Fragmentation check over\033[m ')
         return True
-    
-    # @classmethod
-    # def check_optimization(cls):
-    #     for instance in cls:
-    #         if os.path.exists(os.path.join(instance.opt_path, 'not.uffconverged')):
-    #             print(f'\nWARNING: Optimization did not converge for {instance.name}\n')
-    #             question = input('\nDo you want to rerun the optimization procedure with more cycles? [y/n]: ')
-    #             if question == 'y':
-    #                 instance.opt_cycles = input(f'\nPlease specify the number of optimization cycles (Last opt was run with {instance.opt_cycles}): ')
-    #                 instance.turbomole_opt(True)
     
     @classmethod
     def find_unique_linkers(cls):
@@ -379,16 +283,13 @@ class MOF:
 @dataclass         
 class Linkers:
     
-    # linkers_path = "./Synth_folder/_Linkers_"
     settings_path = os.path.join(os.getcwd(), 'settings.txt')
     job_sh = 'job.sh'
     run_str = 'sbatch job.sh'
     opt_cycles = 1000
 
     run_str_sp = f"bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
-    # run_str_sp = "bash -c '/opt/turbomole/7.02/scripts/x2t linker.xyz > coord; /opt/turbomole/7.02/bin/em64t-unknown-linux-gnu/uff; /opt/turbomole/7.02/scripts/t2x -c > final.xyz'"
 
-    # job_sh_path = os.path.join(MOF.src_dir,"MOFSynth", "Files")
     job_sh_path = os.path.join(MOF.src_dir, "Files")
     instances = []
     converged = []
@@ -415,21 +316,22 @@ class Linkers:
             cls.job_sh = job_sh
 
     def optimize(self, rerun = False):
-
-        copy(Linkers.job_sh_path, self.opt_path, Linkers.job_sh)
+        
+        # Must be before os.chdir(self.opt_path)
+        if rerun == False:
+            copy(Linkers.job_sh_path, self.opt_path, Linkers.job_sh)
         
         os.chdir(self.opt_path)
                 
         if rerun == False and not os.path.exists('linker.xyz'):
-            print(self.opt_path)
             os.rename(f'linker_{self.smiles}.xyz', 'linker.xyz')
         
-        try:
-            #os.system(Linkers.run_str_sp + " > /dev/null 2>&1")
-            os.system(Linkers.run_str_sp)
-        except Exception as e:
-            print(f"An error occurred while running the command for turbomole: {str(e)}")
-        
+        if rerun == False:
+            try:
+                #os.system(Linkers.run_str_sp + " > /dev/null 2>&1")
+                os.system(Linkers.run_str_sp)
+            except Exception as e:
+                print(f"An error occurred while running the command for turbomole: {str(e)}")
 
         with open("control", 'r') as f:
             lines = f.readlines()
@@ -459,33 +361,16 @@ class Linkers:
                 Linkers.converged.append(linker)
         
         for linker in Linkers.not_converged:
-                print(f'\nWARNING: Optimization did not converge for {linker.smiles} [MOF = {linker.mof_name}]')
+                print(f'  \033[1;31m\nWARNING: Optimization did not converge for {linker.smiles} [MOF = {linker.mof_name}]\033[m')
                 question = input('Do you want to rerun the optimization procedure with more cycles? [y/n]: ')
                 if question.lower() == 'y':
                     linker.opt_cycles = input(f'Please specify the number of optimization cycles (Last opt was run with {linker.opt_cycles}): ')
-                    linker.optimize(True)
+                    linker.optimize(rerun = True)
         
         return Linkers.converged, Linkers.not_converged
     
     def define_linker_opt_energies(self):       
         
-        # define manually
-        # if self.mof_name in fault_1:
-        #     self.smiles = '[O-]C(=O)c1cc(cc(c1)C(=O)[O-])c1ccc(cc1)c1cc(cc(c1)C(=O)[O-])C(=O)[O-]'
-        #     self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles)
-        
-        # if self.mof_name in fault_2:
-        #     if self.mof_name == fault_2[0]:
-        #         self.opt_energy = 0.4145538622 #define manually
-        #         self.smiles = '[O-]C(=O)c1cc(cc(c1)C(=O)[O-])c1ccc(cc1)c1cc(cc(c1)C(=O)[O-])C(=O)[O-]'
-        #         self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles)
-        #     elif self.mof_name == fault_2[1]:
-        #         self.opt_energy == 0.5855769699 #define manually
-        #         self.smiles = '[O-]C(=O)c1ccc(cc1)c1cc(cc(c1)c1ccc(cc1)C(=O)[O-])c1cc(cc(c1)c1ccc(cc1)C(=O)[O-])c1ccc(cc1)C(=O)[O-]'
-        #         self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles)
-        #     return
-        #####################################
-
         with open(os.path.join(self.opt_path, 'uffenergy')) as f:
             lines = f.readlines()
         self.opt_energy = lines[1].split()[-1]
