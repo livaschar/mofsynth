@@ -1,11 +1,12 @@
 from __utils__ import synth_eval, results, check_opt
 
 '''TO RUN THE SYNTH EVALUATION'''
-directory = 'cifs_testing'
-cifs, linkers, fault = synth_eval(directory) # Lists with the cifs found in the directory and all the linkers. print(cifs[0].name), print(linkers[0].smiles)
+# directory = 'cifs_1'
+# cifs, linkers, fault_fragmentation, fault_smiles = synth_eval(directory) # Lists with the cifs found in the directory and all the linkers. print(cifs[0].name), print(linkers[0].smiles)
 
 ''' CHECK ONLY TO SEE WHICH CONVERGED '''
 # converged, not_converged = check_opt()
+
 # with open('converged.txt', 'w') as f:
 #     for i in converged:
 #         f.write(f"{i.smiles} {i.mof_name}\n")
@@ -15,7 +16,7 @@ cifs, linkers, fault = synth_eval(directory) # Lists with the cifs found in the 
 #         f.write(f"{i.smiles} {i.mof_name}\n")
 
 '''If runs have finished'''
-# txt_path = results()
+txt_path = results()
 
 
 exit()

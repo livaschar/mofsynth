@@ -1,3 +1,6 @@
-command: sbatch job.sh
-job_filename: job.sh
-optimization_cycles: 1000
+# Command to run the optimization programm
+sbatch job.sh
+# Filename found in 'Files' directory [optional]
+job.sh
+# Number of optimization cycles
+10000

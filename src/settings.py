@@ -3,9 +3,9 @@ def settings_from_file(filepath):
     with open(filepath) as f:
         lines = f.readlines()
     
-    run_str = ' '.join([i for i in lines[0].split()[1:]])
-    job_sh = lines[1].split()[1:][0]
-    cycles = lines[2].split()[1:][0]
+    run_str = ' '.join([i for i in lines[1].split()])
+    job_sh = lines[3].split()[0]
+    cycles = lines[5].split()[0]
 
     return run_str, job_sh, cycles
 
