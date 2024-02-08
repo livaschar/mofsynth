@@ -73,22 +73,30 @@ def synth_eval(directory):
         mof.single_point()
 
         # Check if fragmentation procedure found indeed a linker
-        check = mof.check_fragmentation()
-        if check == False:
+        fragm_check = mof.check_fragmentation()
+        if fragm_check == False:
             question = input(f'Do you want to skip {mof.name}? [y/n]: ')
             if question.lower() == 'y':
-                MOF.fault_fragment.append(mof)
+                MOF.fault_fragment.append(mof.name)
                 MOF.instances.pop()
                 continue
+            else:
+                print(f'Please manually put linkers.cif at this path {os.path.join(mof.fragmentation_path,"Output/MetalOxo")}. When ready please...')
+                input('Press Enter to continue')
+                mof.fragmentation(rerun = True)
         
         # Check if fragmentation procedure found a smiles code for this linker
-        check2 = mof.check_smiles()
-        if check2 == False:
+        smile_check = mof.check_smiles()
+        if smile_check == False:
             question = input(f'Do you want to skip {mof.name}? [y/n]: ')
             if question.lower() == 'y':
-                MOF.fault_smiles.append(mof)
+                MOF.fault_smiles.append(mof.name)
                 MOF.instances.pop()
                 continue
+            else:
+                
+                print(f'Please manually write smiles code at {os.path.join(mof.fragmentation_path,"Output/python_smiles_parts.txt")}. When ready please...')
+                input('Press Enter to continue')
     
     # Find the unique linkers from the whole set of MOFs
     MOF.find_unique_linkers()
@@ -106,14 +114,16 @@ def synth_eval(directory):
     # Right instances of Linkers class
     with open('linkers.pkl', 'wb') as file:
         pickle.dump(Linkers.instances, file)
-    
+
     if MOF.fault_fragment!=[]:
-        with open('fault_fragmentation.pkl', 'wb') as file:
-            pickle.dump(MOF.fault_fragment, file)
+        with open('fault_fragmentation.txt', 'w') as file:
+            for mof_name in MOF.fault_fragment:
+                file.write(f'{mof_name}\n')
 
     if MOF.fault_smiles!=[]:
-        with open('fault_smiles.pkl', 'wb') as file:
-            pickle.dump(MOF.fault_smiles, file)
+        with open('fault_smiles.txt', 'w') as file:
+            for mof_name in MOF.fault_smiles:
+                file.write(f'{mof_name}\n')
 
     return MOF.instances, Linkers.instances, MOF.fault_fragment, MOF.fault_smiles
 
@@ -132,7 +142,7 @@ def results():
     for linker in Linkers.converged:
         linker.define_linker_opt_energies()
     
-    # Dictionary with smile code as keys and the lowest opt energy of this smile code
+    # Best opt for each smiles code. {smile code as keys and value [opt energy, opt_path]}
     energy_dict = Linkers.find_the_best_opt_energies()
 
     MOF.analyse(cifs, linkers, energy_dict)
@@ -154,7 +164,7 @@ class MOF:
     fault_fragment = []
     fault_smiles = []
     unique_linkers = []
-    # linker_smiles, simple_smile
+    # linker_smiles, simple_smile might not be needed
 
     def __init__(self, name):
         MOF.instances.append(self)
@@ -196,13 +206,14 @@ class MOF:
         
         print(f'\n \033[1;31mSupercell created\033[m ')
     
-    def fragmentation(self):
-    
-        os.chdir(self.fragmentation_path)
-        
-        mofid = cif2mofid(f"{self.name}_supercell.cif")
-    
-        os.chdir(MOF.src_dir)
+    def fragmentation(self, rerun = False):
+
+        if rerun == False:
+            os.chdir(self.fragmentation_path)
+            
+            mofid = cif2mofid(f"{self.name}_supercell.cif")
+            
+            os.chdir(MOF.src_dir)
 
         copy(os.path.join(self.fragmentation_path,"Output/MetalOxo"), self.obabel_path, "linkers.cif")
         
@@ -278,12 +289,12 @@ class MOF:
             Linkers(instance.linker_smiles, instance.name)
 
             # Copy the linkers.cif and linker.xyz. Try-except because some smiles code are too long and an error pops up
-            try:
-                copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', f'linker_{instance.linker_smiles}.cif')
-                copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', f'linker_{instance.linker_smiles}.xyz')
-            except:
-                copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', 'linkers.cif')
-                copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', 'linker.xyz')
+            # try:
+            #     copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', f'linker_{instance.linker_smiles}.cif')
+            #     copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', f'linker_{instance.linker_smiles}.xyz')
+            # except:
+            copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', 'linkers.cif')
+            copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', 'linker.xyz')
 
 
     @staticmethod
@@ -294,14 +305,11 @@ class MOF:
             linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
 
             if linker != None and linker.smiles in dict.keys():
+                mof.opt_energy = linker.opt_energy
                 de = calc_de(mof, dict)
-                rmsd = calc_rmsd(mof, dict)
-                results_list.append([mof.name, de, rmsd, mof.linker_smiles, mof.linker_sp_energy])
+                rmsd = calc_rmsd(mof, dict)            
             else:
-                if linker == None:
-                    print(f"Did not find linker for: {mof.name} ")
-                elif linker in Linkers.not_converged:
-                    print(f'Linker is not converged for: {mof.name}')
+                print(f"Did not find linker for: {mof.name}. Zero values will be appointed")
                 de = 0.
                 rmsd = 0.
                 with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
@@ -310,14 +318,20 @@ class MOF:
                     if "cycle" in line:
                         mof.linker_sp_energy = float(line.split()[6])
                         break
-                results_list.append([mof.name, de, rmsd, mof.linker_smiles, mof.linker_sp_energy])
+            
+            results_list.append([mof.name, de, de*627.51, rmsd, mof.linker_smiles, mof.sp_energy, mof.opt_energy])
+
+            if linker in Linkers.not_converged:
+                print(f'Linker optimization is not converged for: {mof.name}. Proceed with caution. Maybe this will be the best optimized linker')
 
         with open(MOF.results_txt_path,"w") as f:
-            f.write('{:<50} {:<37} {:<30} {:<60} {:<30}\n'.format("NAME", "ENERGY (OPT-SP)", "RMSD", "LINKER (SMILES)", "Linker SinglePointEnergy"))
+            f.write('{:<50} {:<37} {:<37} {:<30} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
             for i in results_list:
-                f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<30.3f} {i[3]:<60} {i[4]:<30.3f}\n")
+                f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[1]:<37.3f} {i[2]:<30.3f} {i[3]:<60} {i[4]:<30.3f} {i[4]:<30.3f}\n")
 
         #write_results_to_excel(results_list, MOF.results_xlsx_path)
+        
+
                 
 @dataclass         
 class Linkers:
@@ -358,9 +372,10 @@ class Linkers:
             copy(Linkers.job_sh_path, self.opt_path, Linkers.job_sh)
         
         os.chdir(self.opt_path)
-                
-        if rerun == False and not os.path.exists('linker.xyz'):
-            os.rename(f'linker_{self.smiles}.xyz', 'linker.xyz')
+        
+        # some smiles code are too long and an error pops up
+        # if rerun == False and not os.path.exists('linker.xyz'):
+        #     os.rename(f'linker_{self.smiles}.xyz', 'linker.xyz')
 
         if rerun == False:
             try:
@@ -392,6 +407,7 @@ class Linkers:
     def check_optimization(linkers_list):
         Linkers.converged = []
         Linkers.not_converged = []
+        custom = []
 
         for linker in linkers_list:
             if os.path.exists(os.path.join(linker.opt_path, 'not.uffconverged')):
@@ -402,11 +418,24 @@ class Linkers:
         
         for linker in Linkers.not_converged:
                 print(f'  \033[1;31m\nWARNING: Optimization did not converge for {linker.smiles} [MOF = {linker.mof_name}]\033[m')
-                print('Path: ', linker.opt_path)
-                question = input('Do you want to rerun the optimization procedure with more cycles? [y/n]: ')
-                if question.lower() == 'y':
-                    linker.opt_cycles = input(f'Please specify the number of optimization cycles (Last opt was run with {linker.opt_cycles}): ')
+                print('Path: ', linker.opt_path, '\n')
+                print(' Option 1: Rerun optimization with more cycles\n',
+                      f'Option 2: Manually add the uffconverged file and add the energy at the uffenergy file at {linker.opt_path}\n',
+                      'Option 3: Skip\n')
+                question = input('[1/2/3]: ')
+                if question == '1':
+                    linker.opt_cycles = input(f'\nPlease specify the number of optimization cycles (Last opt was run with {linker.opt_cycles}): ')
                     linker.optimize(rerun = True)
+                elif question == '2':
+                    question = input(f'\nManually add the necessary files and values at {linker.opt_path}\n')
+                    input('Press ENTER to continue...')
+                    custom.append(linker)
+                else:
+                    pass
+        
+        if custom != []:
+            Linkers.converged.extend(custom)
+            Linkers.not_converged = [i for i in Linkers.not_converged if i not in custom]
         
         return Linkers.converged, Linkers.not_converged
     
@@ -442,16 +471,16 @@ def calc_de(mof, dict):
     smiles = mof.linker_smiles
 
     if smiles in dict and dict[smiles] is not None:
-        linker_opt_energy = dict[smiles][0]
+        best_opt_energy = dict[smiles][0]
 
     with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
         lines = f.readlines()
         for line in lines:
             if "cycle" in line:
-                mof.linker_sp_energy = float(line.split()[6])
+                mof.sp_energy = float(line.split()[6])
                 break
     
-    mof.de = float(linker_opt_energy) - float(mof.linker_sp_energy)
+    mof.de = float(best_opt_energy) - float(mof.sp_energy)
     return mof.de
 
 def calc_rmsd(mof, dict):
@@ -466,22 +495,19 @@ def calc_rmsd(mof, dict):
     os.chdir(mof.rmsd_path)
 
     try:
-        os.system("calculate_rmsd -e final_sp.xyz final_opt.xyz > result.txt")
+        os.system("calculate_rmsd -e final_sp.xyz final_opt.xyz > rmsd.txt")
     except Exception as e:
         print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
         return 0, False
 
-    with open("result.txt",'r') as rmsd_file:
+    with open("rmsd.txt",'r') as rmsd_file:
         for line in rmsd_file:
             rmsd_diff = line.split()[0]
     
     try:
         mof.rmsd = float(rmsd_diff)
     except:
-        print(" CALCULATING RMSD FOR: ")
-        print("MOFNAME: ", mof.name)
-        print("SMILES: ", smiles)
-
+        print(f'\nRMSD could not be converted to a float in {mof.rmsd_path}\n')
 
     os.chdir(mof.src_dir)
 
