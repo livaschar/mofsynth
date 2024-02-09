@@ -25,7 +25,7 @@ from mofid.run_mofid import cif2mofid
 from settings import user_settings, settings_from_file
 from general import copy
 import re
-# import openpyxl
+import openpyxl
 
 
 def synth_eval(directory):
@@ -145,9 +145,12 @@ def results():
     # Best opt for each smiles code. {smile code as keys and value [opt energy, opt_path]}
     energy_dict = Linkers.find_the_best_opt_energies()
 
-    MOF.analyse(cifs, linkers, energy_dict)
+    results_list = MOF.analyse(cifs, linkers, energy_dict)
+
+    txt_file_path = write_txt_results(results_list)
+    xlsx_file_path = write_xlsx_results(results_list)
     
-    return MOF.results_txt_path
+    return txt_file_path, xlsx_file_path
 
 
 @dataclass
@@ -305,32 +308,28 @@ class MOF:
             linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
 
             if linker != None and linker.smiles in dict.keys():
-                mof.opt_energy = linker.opt_energy
+                mof.opt_energy = float(linker.opt_energy)
                 de = calc_de(mof, dict)
                 rmsd = calc_rmsd(mof, dict)            
             else:
                 print(f"Did not find linker for: {mof.name}. Zero values will be appointed")
+                mof.opt_energy = 0.
                 de = 0.
                 rmsd = 0.
                 with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
                     lines = f.readlines()
                 for line in lines:
                     if "cycle" in line:
-                        mof.linker_sp_energy = float(line.split()[6])
+                        mof.sp_energy = float(line.split()[6])
                         break
             
             results_list.append([mof.name, de, de*627.51, rmsd, mof.linker_smiles, mof.sp_energy, mof.opt_energy])
-
-            if linker in Linkers.not_converged:
-                print(f'Linker optimization is not converged for: {mof.name}. Proceed with caution. Maybe this will be the best optimized linker')
-
-        with open(MOF.results_txt_path,"w") as f:
-            f.write('{:<50} {:<37} {:<37} {:<30} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
-            for i in results_list:
-                f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[1]:<37.3f} {i[2]:<30.3f} {i[3]:<60} {i[4]:<30.3f} {i[4]:<30.3f}\n")
-
-        #write_results_to_excel(results_list, MOF.results_xlsx_path)
         
+        return results_list
+            # if linker in Linkers.not_converged:
+            #     print(f'Linker optimization is not converged for: {mof.name}. Proceed with caution. Maybe this will be the best optimized linker')
+
+
 
                 
 @dataclass         
@@ -513,25 +512,34 @@ def calc_rmsd(mof, dict):
 
     return mof.rmsd
 
-# def write_results_to_excel(results_list, excel_file):
-#     # Create a new workbook and select the active sheet
-#     workbook = openpyxl.Workbook()
-#     sheet = workbook.active
+def write_txt_results(results_list):
 
-#     # Write headers
-#     headers = ["NAME", "ENERGY (OPT-SP)", "RMSD", "LINKER (SMILES)", "Linker SinglePointEnergy"]
-#     sheet.append(headers)
+    with open(MOF.results_txt_path, "w") as f:
+        f.write('{:<50} {:<37} {:<37} {:<30} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
+        for i in results_list:
+            f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<60} {i[5]:<30.3f} {i[6]:<30.3f}\n")
+    return MOF.results_txt_path
 
-#     # Write results
-#     for result_row in results_list:
-#         sheet.append(result_row)
+        
+def write_xlsx_results(results_list):
+    
+    # Create a new workbook and select the active sheet
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
 
-#     # Save the workbook to the specified Excel file
-#     workbook.save(excel_file)
+    # Write headers
+    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
+    sheet.append(headers)
+
+    # Write results
+    for result_row in results_list:
+        sheet.append(result_row)
+
+    # Save the workbook to the specified Excel file
+    workbook.save(MOF.results_xlsx_path)
+    
+    return MOF.results_xlsx_path
 
 
-
-# os.system('shopt -s extglob')
-# os.system(f'rm * !(linker_{self.smiles}.xyz|linker_{self.smiles}.cif)')
 
 
