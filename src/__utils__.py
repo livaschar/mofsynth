@@ -550,11 +550,11 @@ def calc_rmsd(mof, dict):
     return mof.rmsd
 
 
-def rmsd_p():
+def rmsd_p(reorder = False, recursion_depth = 0):
     
     # Define a dictionary to map atomic numbers to symbols
     atomic_symbols = {
-        1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
+        0: 'X', 1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
         11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
         19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe',
         27: 'Ni', 28: 'Co', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se',
@@ -570,30 +570,42 @@ def rmsd_p():
         107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg', 112: 'Cn', 113: 'Nh', 114: 'Fl',
         115: 'Mc', 116: 'Lv', 117: 'Ts', 118: 'Og',
     }
-        
+
+    if recursion_depth >= 3:
+        print("Recursion depth limit reached. Exiting.")
+        return False
+
     try:
-        os.system("calculate_rmsd -p --reorder final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+        if reorder == False:
+            os.system("calculate_rmsd -p final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+        else:
+            os.system("calculate_rmsd -p --reorder final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+
     except Exception as e:
         print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
         return False
-    
+
     data = []
-    with open('final_sp_mod.txt','r') as input_file:
+    with open('final_sp_mod.txt', 'r') as input_file:
         lines = input_file.readlines()
-        
+
         for line_number, line in enumerate(lines):
+            
+            atomic_number = 0
             if line_number < 2:
                 continue
-            parts = line.split()
             
+            parts = line.split()
+            if parts == []:
+                continue
+
             try:
                 atomic_number = int(parts[0])
-            except:
-                atomic_number = 1
-                print("PARTS 0 IS HERE/:  ", parts)
-                exit()
+            except ValueError:
+                input_file.close()
+                return rmsd_p(reorder=True, recursion_depth=recursion_depth + 1)
 
-            symbol = atomic_symbols.get(atomic_number, 'X')
+            symbol = atomic_symbols.get(atomic_number)
             coordinates = [float(coord) for coord in parts[1:4]]
             data.append((symbol, coordinates))
 
