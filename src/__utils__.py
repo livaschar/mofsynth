@@ -329,6 +329,8 @@ class MOF:
             # if linker in Linkers.not_converged:
             #     print(f'Linker optimization is not converged for: {mof.name}. Proceed with caution. Maybe this will be the best optimized linker')
 
+
+
                 
 @dataclass         
 class Linkers:
@@ -364,15 +366,12 @@ class Linkers:
             cls.job_sh = job_sh
 
     def optimize(self, rerun = False):
+
         # Must be before os.chdir(self.opt_path)
         if rerun == False:
             copy(Linkers.job_sh_path, self.opt_path, Linkers.job_sh)
         
         os.chdir(self.opt_path)
-        
-        # some smiles code are too long and an error pops up
-        # if rerun == False and not os.path.exists('linker.xyz'):
-        #     os.rename(f'linker_{self.smiles}.xyz', 'linker.xyz')
 
         if rerun == False:
             try:
@@ -481,41 +480,52 @@ def calc_de(mof, dict):
     return mof.de
 
 def calc_rmsd(mof, dict):
-    
+
     rmsd = []
 
     smiles = mof.linker_smiles
+    
 
     copy(dict[mof.linker_smiles][1], mof.rmsd_path, 'final.xyz', 'final_opt.xyz')
     copy(mof.sp_path, mof.rmsd_path, 'final.xyz', 'final_sp.xyz')
     
     os.chdir(mof.rmsd_path)
 
+    print(" HEHEHEHEHE", mof.name)
+    check = rmsd_p()
+    if check == False:
+        if input('Error while calculating the -p RMSD instance. Continue? [y/n]: ') == 'y':
+            pass
+        else:
+            return 0
+
     try:
-        command = "calculate_rmsd -e final_sp.xyz final_opt.xyz"
-        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+        for sp in ['final_sp.xyz', 'final_sp_mod.xyz']:
+            command = f"calculate_rmsd -e final_opt.xyz {sp}"
+            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
     
-        command = "calculate_rmsd -e --reorder-method hungarian final_sp.xyz final_opt.xyz"
-        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
-    
-        command = "calculate_rmsd -e --reorder-method inertia-hungarian final_sp.xyz final_opt.xyz"
-        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
-    
-        command = "calculate_rmsd -e --reorder-method distance final_sp.xyz final_opt.xyz"
-        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            command = f"calculate_rmsd -e --reorder-method hungarian final_opt.xyz {sp}"
+            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+        
+            command = f"calculate_rmsd -e --reorder-method inertia-hungarian final_opt.xyz {sp}"
+            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+        
+            command = f"calculate_rmsd -e --reorder-method distance final_opt.xyz {sp}"
+            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))        
     
     except Exception as e:
         
         print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
         
         return 0, False
+    
 
+    
     minimum = float(rmsd[0].stdout)
     for i in rmsd:
         if float(i.stdout) < minimum:
             minimum = float(i.stdout)
             args = i.args
-
 
     with open('result.txt', 'w') as file:
         file.write(str(minimum))
@@ -534,9 +544,66 @@ def calc_rmsd(mof, dict):
         print("MOFNAME: ", mof.name)
         print("SMILES: ", smiles)
 
+
     os.chdir(mof.src_dir)
 
     return mof.rmsd
+
+
+def rmsd_p():
+    
+    # Define a dictionary to map atomic numbers to symbols
+    atomic_symbols = {
+        1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
+        11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
+        19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe',
+        27: 'Ni', 28: 'Co', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se',
+        35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo',
+        43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn',
+        51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La', 58: 'Ce',
+        59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy',
+        67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf', 73: 'Ta', 74: 'W',
+        75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
+        83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra', 89: 'Ac', 90: 'Th',
+        91: 'Pa', 92: 'U', 93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf',
+        99: 'Es', 100: 'Fm', 101: 'Md', 102: 'No', 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg',
+        107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg', 112: 'Cn', 113: 'Nh', 114: 'Fl',
+        115: 'Mc', 116: 'Lv', 117: 'Ts', 118: 'Og',
+    }
+        
+    try:
+        os.system("calculate_rmsd -p --reorder final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+    except Exception as e:
+        print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
+        return False
+    
+    data = []
+    with open('final_sp_mod.txt','r') as input_file:
+        lines = input_file.readlines()
+        
+        for line_number, line in enumerate(lines):
+            if line_number < 2:
+                continue
+            parts = line.split()
+            
+            try:
+                atomic_number = int(parts[0])
+            except:
+                atomic_number = 1
+                print("PARTS 0 IS HERE/:  ", parts)
+                exit()
+
+            symbol = atomic_symbols.get(atomic_number, 'X')
+            coordinates = [float(coord) for coord in parts[1:4]]
+            data.append((symbol, coordinates))
+
+    with open('final_sp_mod.xyz', 'w') as output_file:
+        output_file.write(f"{len(data)}\n")
+        output_file.write("\n")
+        for symbol, coords in data:
+            output_file.write(f"{symbol} {coords[0]:.6f} {coords[1]:.6f} {coords[2]:.6f}\n")
+    
+    return True
 
 def write_txt_results(results_list):
 
