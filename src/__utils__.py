@@ -418,7 +418,7 @@ class Linkers:
                 print('Path: ', linker.opt_path, '\n')
                 print(' Option 1: Rerun optimization with more cycles\n',
                       f'Option 2: Manually add the uffconverged file and add the energy at the uffenergy file at {linker.opt_path}\n',
-                      'Option 3: Skip\n')
+                      'Option 3: Skip this instance\n')
                 question = input('[1/2/3]: ')
                 if question == '1':
                     linker.opt_cycles = input(f'\nPlease specify the number of optimization cycles (Last opt was run with {linker.opt_cycles}): ')
@@ -525,9 +525,6 @@ def calc_rmsd(mof, dict):
         except:
             print(f'Args not found for mof {mof.rmsd_path}')
                 
-    # with open("result.txt",'r') as rmsd_file:
-    #     for line in rmsd_file:
-    #         rmsd_diff = line.split()[0]
     rmsd_diff = minimum
 
     try:
