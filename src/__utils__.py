@@ -329,8 +329,6 @@ class MOF:
             # if linker in Linkers.not_converged:
             #     print(f'Linker optimization is not converged for: {mof.name}. Proceed with caution. Maybe this will be the best optimized linker')
 
-
-
                 
 @dataclass         
 class Linkers:
@@ -487,7 +485,6 @@ def calc_rmsd(mof, dict):
     rmsd = []
 
     smiles = mof.linker_smiles
-    
 
     copy(dict[mof.linker_smiles][1], mof.rmsd_path, 'final.xyz', 'final_opt.xyz')
     copy(mof.sp_path, mof.rmsd_path, 'final.xyz', 'final_sp.xyz')
@@ -539,7 +536,6 @@ def calc_rmsd(mof, dict):
         print(" CALCULATING RMSD FOR: ")
         print("MOFNAME: ", mof.name)
         print("SMILES: ", smiles)
-
 
     os.chdir(mof.src_dir)
 
