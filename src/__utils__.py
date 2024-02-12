@@ -484,6 +484,7 @@ def calc_de(mof, dict):
 
 def calc_rmsd(mof, dict):
     
+    rmsd = []
 
     smiles = mof.linker_smiles
     
@@ -494,19 +495,51 @@ def calc_rmsd(mof, dict):
     os.chdir(mof.rmsd_path)
 
     try:
-        os.system("calculate_rmsd -e final_sp.xyz final_opt.xyz > rmsd.txt")
+        command = "calculate_rmsd -e final_sp.xyz final_opt.xyz"
+        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+    
+        command = "calculate_rmsd -e --reorder-method hungarian final_sp.xyz final_opt.xyz"
+        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+    
+        command = "calculate_rmsd -e --reorder-method inertia-hungarian final_sp.xyz final_opt.xyz"
+        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+    
+        command = "calculate_rmsd -e --reorder-method distance final_sp.xyz final_opt.xyz"
+        rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+    
     except Exception as e:
+        
         print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
+        
         return 0, False
 
-    with open("rmsd.txt",'r') as rmsd_file:
-        for line in rmsd_file:
-            rmsd_diff = line.split()[0]
-    
+    minimum = float(rmsd[0].stdout)
+    for i in rmsd:
+        if float(i.stdout) < minimum:
+            minimum = float(i.stdout)
+            args = i.args
+
+
+    with open('result.txt', 'w') as file:
+        file.write(str(minimum))
+        file.write('\n')
+        try:
+            file.write(args)
+        except:
+            print(f'Args not found for mof {mof.rmsd_path}')
+                
+    # with open("result.txt",'r') as rmsd_file:
+    #     for line in rmsd_file:
+    #         rmsd_diff = line.split()[0]
+    rmsd_diff = minimum
+
     try:
         mof.rmsd = float(rmsd_diff)
     except:
-        print(f'\nRMSD could not be converted to a float in {mof.rmsd_path}\n')
+        print(" CALCULATING RMSD FOR: ")
+        print("MOFNAME: ", mof.name)
+        print("SMILES: ", smiles)
+
 
     os.chdir(mof.src_dir)
 
