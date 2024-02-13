@@ -159,8 +159,8 @@ class MOF:
 
     synth_path = "./Synth_folder"
     linkers_path = os.path.join(synth_path, '_Linkers_')
-    results_txt_path = os.path.join(synth_path, 'synth_results.txt')
-    results_xlsx_path = os.path.join(synth_path, 'synth_results.xlsx')
+    results_txt_path = os.path.join(synth_path, 'synth_results_vol3.txt')
+    results_xlsx_path = os.path.join(synth_path, 'synth_results_vol3.xlsx')
     run_str_sp = "bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
     
     instances = []
@@ -291,14 +291,12 @@ class MOF:
             # Init this linker as a 'Linkers' class object
             Linkers(instance.linker_smiles, instance.name)
 
-            # Copy the linkers.cif and linker.xyz. Try-except because some smiles code are too long and an error pops up
-            # try:
-            #     copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', f'linker_{instance.linker_smiles}.cif')
-            #     copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', f'linker_{instance.linker_smiles}.xyz')
-            # except:
             copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', 'linkers.cif')
             copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', 'linker.xyz')
-
+    
+    def change_smiles(self, new_smiles):
+        self.linker_smiles = new_smiles
+        self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.linker_smiles)
 
     @staticmethod
     def analyse(cifs, linkers, dict):
@@ -311,24 +309,31 @@ class MOF:
                 mof.opt_energy = float(linker.opt_energy)
                 de = calc_de(mof, dict)
                 rmsd = calc_rmsd(mof, dict)            
-            else:
-                print(f"Did not find linker for: {mof.name}. Zero values will be appointed")
-                mof.opt_energy = 0.
-                de = 0.
-                rmsd = 0.
-                with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
-                    lines = f.readlines()
-                for line in lines:
-                    if "cycle" in line:
-                        mof.sp_energy = float(line.split()[6])
-                        break
+            elif linker == None:
+                question = input(f'\nDid not find linker for: {mof.name}. Change smiles for {mof.name}? [y/n]: ')
+                if question == 'n':
+                    print(f"Did not find linker for: {mof.name}. Zero values will be appointed")
+                    mof.opt_energy = 0.
+                    de = 0.
+                    rmsd = 0.
+                    with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
+                        lines = f.readlines()
+                    for line in lines:
+                        if "cycle" in line:
+                            mof.sp_energy = float(line.split()[6])
+                            break
+                else:
+                    new_smiles = input(f'\nNew smile code: ')
+                    mof.change_smiles(new_smiles)
+                    linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
+                    mof.opt_energy = float(linker.opt_energy)
+                    de = calc_de(mof, dict)
+                    rmsd = calc_rmsd(mof, dict)   
+
             
             results_list.append([mof.name, de, de*627.51, rmsd, mof.linker_smiles, mof.sp_energy, mof.opt_energy])
         
         return results_list
-            # if linker in Linkers.not_converged:
-            #     print(f'Linker optimization is not converged for: {mof.name}. Proceed with caution. Maybe this will be the best optimized linker')
-
 
 
                 
@@ -358,6 +363,11 @@ class Linkers:
 
         os.makedirs(self.opt_path, exist_ok = True)
     
+    def change_smiles(self, smiles):
+        self.smiles = smiles
+        self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles)
+        self.opt_path = os.path.join(MOF.linkers_path, self.simple_smile, self.mof_name)
+
     @classmethod
     def opt_settings(cls, run_str, opt_cycles, job_sh = None):
         cls.run_str = run_str
@@ -408,10 +418,16 @@ class Linkers:
         for linker in linkers_list:
             if os.path.exists(os.path.join(linker.opt_path, 'not.uffconverged')):
                 Linkers.not_converged.append(linker)
+            elif os.path.exists(os.path.join(linker.opt_path)) == False:
+                print(f'\n{linker.opt_path} does not exits. Please check the _Linkers_ folder.')
+                new_smiles = input('Change the smiles to check again: ')
+                linker.change_smiles(new_smiles)
+                
+                Linkers.converged.append(linker)
             else:
                 print(f'\nOptimization converged succesfully for {linker.smiles} [MOF = {linker.mof_name}]')
                 Linkers.converged.append(linker)
-        
+    
         for linker in Linkers.not_converged:
                 print(f'  \033[1;31m\nWARNING: Optimization did not converge for {linker.smiles} [MOF = {linker.mof_name}]\033[m')
                 print('Path: ', linker.opt_path, '\n')
