@@ -22,13 +22,17 @@ import shutil
 import subprocess
 import pickle
 from mofid.run_mofid import cif2mofid
-from settings import user_settings, settings_from_file
-from general import copy
+# from settings import user_settings, settings_from_file
+# from general import copy
 import re
 import openpyxl
 
 
+all_linkers_dictionary = {}
+
 def synth_eval(directory):
+
+    global linkers_dictionary
     
     # Create the working directory
     os.makedirs("Synth_folder", exist_ok=True)
@@ -38,6 +42,7 @@ def synth_eval(directory):
         run_str, job_sh, opt_cycles = settings_from_file(Linkers.settings_path)
     else:
         run_str, job_sh, opt_cycles = user_settings()
+    
     Linkers.opt_settings(run_str, opt_cycles, job_sh)
 
     print(f'  \033[1;32m\nSTART OF SYNTHESIZABILITY EVALUATION\033[m')
@@ -53,28 +58,34 @@ def synth_eval(directory):
     # Start procedure for each cif
     for i, cif in enumerate(cifs):
 
-        print(f'\n - \033[1;34mMOF under study: {cif[:-4]}\033[m -')
+        # print(f'\n - \033[1;34mMOF under study: {cif[:-4]}\033[m -')
 
         # Initialize the mof name as an object of MOF class
         mof = MOF(cif[:-4])
 
-        # Check If its already initialized a MOF object
-        if os.path.exists(os.path.join(mof.turbomole_path, "linker.xyz")):
-            continue
+        # Check if its already initialized a MOF object
+        if os.path.exists(os.path.join(mof.sp_path, "final.xyz")):
+            pass
+        else:
+            # Copy .cif and job.sh in the mof directory
+            copy(user_dir, mof.init_path, f"{mof.name}.cif")
+            copy(Linkers.job_sh_path, mof.sp_path, job_sh)
+            
+            # Create supercell, do the fragmentation, distinguish one linker, calculate single point energy
+            mof.create_supercell()
+            mof.fragmentation()
+            mof.obabel()
+            mof.single_point()
 
-        # Copy .cif and job.sh in the mof directory
-        copy(user_dir, mof.init_path, f"{mof.name}.cif")
-        copy(Linkers.job_sh_path, mof.sp_path, job_sh)
-
-        # Create supercell, do the fragmentation, distinguish one linker, calculate single point energy
-        mof.create_supercell()
-        mof.fragmentation()
-        mof.obabel()
-        mof.single_point()
 
         # Check if fragmentation procedure found indeed a linker
         fragm_check = mof.check_fragmentation()
         if fragm_check == False:
+            MOF.fault_fragment.append(mof.name)
+            MOF.instances.pop()
+            
+            ''' SKIP FOR NOW '''
+            '''
             question = input(f'Do you want to skip {mof.name}? [y/n]: ')
             if question.lower() == 'y':
                 MOF.fault_fragment.append(mof.name)
@@ -84,29 +95,39 @@ def synth_eval(directory):
                 print(f'Please manually put linkers.cif at this path {os.path.join(mof.fragmentation_path,"Output/MetalOxo")}. When ready please...')
                 input('Press Enter to continue')
                 mof.fragmentation(rerun = True)
+            '''
+            ''' ------------ '''
         
         # Check if fragmentation procedure found a smiles code for this linker
         smile_check = mof.check_smiles()
         if smile_check == False:
+            MOF.fault_smiles.append(mof.name)
+            MOF.instances.pop()
+
+            ''' SKIP FOR NOW '''
+            '''
             question = input(f'Do you want to skip {mof.name}? [y/n]: ')
             if question.lower() == 'y':
                 MOF.fault_smiles.append(mof.name)
                 MOF.instances.pop()
                 continue
             else:
-                
                 print(f'Please manually write smiles code at {os.path.join(mof.fragmentation_path,"Output/python_smiles_parts.txt")}. When ready please...')
                 input('Press Enter to continue')
-    
+            '''
+            ''' ------------ '''
+
     # Find the unique linkers from the whole set of MOFs
-    MOF.find_unique_linkers()
+    all_linkers_dictionary = MOF.find_unique_linkers()
+    
 
     # Proceed to the optimization procedure of every linker
+
     for linker in Linkers.instances:
         print(f'\n - \033[1;34mLinker under study: {linker.smiles} of {linker.mof_name}\033[m -')
         print(f'\n \033[1;31mOptimization calculation\033[m')
         linker.optimize(rerun = False)
-    
+
     # Right instances of MOF class
     with open('cifs.pkl', 'wb') as file:
         pickle.dump(MOF.instances, file)
@@ -124,20 +145,26 @@ def synth_eval(directory):
         with open('fault_smiles.txt', 'w') as file:
             for mof_name in MOF.fault_smiles:
                 file.write(f'{mof_name}\n')
+    
+    with open('linkers_codes_dictionary.txt', 'w') as file:
+        for key, value in all_linkers_dictionary.items():
+            file.write(f'{key} : {value}\n')
+    
 
     return MOF.instances, Linkers.instances, MOF.fault_fragment, MOF.fault_smiles
 
 def check_opt():
-    cifs, linkers = load_objects()
+    cifs, linkers, all_linkers_dictionary = load_objects()
 
-    converged, not_converged = Linkers.check_optimization(linkers)
+    converged, not_converged = Linkers.check_optimization_status(linkers)
     
     return(converged, not_converged)
 
 def results():
-    cifs, linkers = load_objects()
+    cifs, linkers, all_linkers_dictionary = load_objects()
+    print(all_linkers_dictionary)
 
-    Linkers.check_optimization(linkers)
+    Linkers.check_optimization_status(linkers)
 
     for linker in Linkers.converged:
         linker.define_linker_opt_energies()
@@ -145,7 +172,7 @@ def results():
     # Best opt for each smiles code. {smile code as keys and value [opt energy, opt_path]}
     energy_dict = Linkers.find_the_best_opt_energies()
 
-    results_list = MOF.analyse(cifs, linkers, energy_dict)
+    results_list = MOF.analyse(cifs, linkers, energy_dict, all_linkers_dictionary)
 
     txt_file_path = write_txt_results(results_list)
     xlsx_file_path = write_xlsx_results(results_list)
@@ -207,7 +234,7 @@ class MOF:
     
         copy(self.cif2cell_path, self.fragmentation_path, f"{self.name}_supercell.cif")
         
-        print(f'\n \033[1;31mSupercell created\033[m ')
+        # print(f'\n \033[1;31mSupercell created\033[m ')
     
     def fragmentation(self, rerun = False):
 
@@ -220,7 +247,7 @@ class MOF:
 
         copy(os.path.join(self.fragmentation_path,"Output/MetalOxo"), self.obabel_path, "linkers.cif")
         
-        print(f'\n \033[1;31mFragmentation done\033[m')
+        # print(f'\n \033[1;31mFragmentation done\033[m')
 
     def obabel(self):
         os.chdir(self.obabel_path)
@@ -237,7 +264,7 @@ class MOF:
     
         copy(self.obabel_path, self.turbomole_path, "linker.xyz")
         
-        print(f'\n \033[1;31mObabel done\033[m')
+        # print(f'\n \033[1;31mObabel done\033[m')
     
     def single_point(self):
 
@@ -253,36 +280,50 @@ class MOF:
 
         os.chdir(MOF.src_dir)
         
-        print(f'\n \033[1;31mSinlge point linker calculation done\033[m ')
+        # print(f'\n \033[1;31mSinlge point linker calculation done\033[m ')
     
     def check_fragmentation(self):
         file_size = os.path.getsize(os.path.join(self.fragmentation_path,"Output/MetalOxo/linkers.cif"))
         if file_size < 550:
-            print(f'  \033[1;31mWARNING: Fragmentation workflow did not find any linkers in the supercell."\033[m')
+            # print(f'  \033[1;31mWARNING: Fragmentation workflow did not find any linkers in the supercell."\033[m')
             return False
-        print(f'\n \033[1;31m Fragmentation check over\033[m ')
+        # print(f'\n \033[1;31m Fragmentation check over\033[m ')
         return True
     
     def check_smiles(self):
         file_size = os.path.getsize(os.path.join(self.fragmentation_path,"Output/python_smiles_parts.txt"))
         if file_size < 10:
-            print(f'  \033[1;31mWARNING: Smiles code was not found."\033[m')
+            # print(f'  \033[1;31mWARNING: Smiles code was not found."\033[m')
             return False
-        print(f'\n \033[1;31m Smiles code check over\033[m ')
+        # print(f'\n \033[1;31m Smiles code check over\033[m ')
         return True
     
     @classmethod
     def find_unique_linkers(cls):
+        linkers_dictionary = {}
+        all_linkers_dictionary = {}
 
         # Iterate through mof instances
+        num = 0
         for instance in cls.instances:
+            num += 1
             
             # Take the smiles code for this linker
             file = os.path.join(instance.fragmentation_path, 'Output','python_smiles_parts.txt')
             with open(file) as f:
                 lines = f.readlines()
+            linkers_dictionary[str(lines[1].split()[-1])] = str(num)
+            all_linkers_dictionary[str(num)] = str(lines[1].split()[-1])
+
             instance.linker_smiles = str(lines[1].split()[-1])
-            instance.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', instance.linker_smiles)
+            #instance.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', instance.linker_smiles)
+        
+        num = 0
+        for instance in cls.instances:
+            num += 1
+
+            instance.linker_smiles = linkers_dictionary[instance.linker_smiles]
+            instance.simple_smile = instance.linker_smiles
 
             # Save the smiles code in the unique linkers
             if instance.linker_smiles not in cls.unique_linkers:
@@ -293,29 +334,55 @@ class MOF:
 
             copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', 'linkers.cif')
             copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', 'linker.xyz')
+        
+        return all_linkers_dictionary
+        
     
     def change_smiles(self, new_smiles):
-        self.linker_smiles = new_smiles
-        self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.linker_smiles)
+        if new_smiles in linkers_dictionary:
+            self.linker_smiles = linkers_dictionary[new_smiles]
+            self.simple_smile = self.linker_smiles
+        else:
+            # SEE THIS MORE. WHAT HAPPENS IF THERE IS AN ETERNAL LOOP
+            new_smiles = input('Please provide a valid smiles that already exists')
+            Linkers.change_smiles(new_smiles)
 
     @staticmethod
-    def analyse(cifs, linkers, dict):
+    def analyse(cifs, linkers, energy_dict, all_linkers_dictionary):
         results_list = []
 
         for mof in cifs:
             linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
 
-            if linker != None and linker.smiles in dict.keys():
+            if linker != None and linker.smiles in energy_dict.keys():
+                
                 mof.opt_energy = float(linker.opt_energy)
-                de = calc_de(mof, dict)
-                rmsd = calc_rmsd(mof, dict)            
+                mof.calc_de(energy_dict)
+                mof.calc_rmsd(energy_dict)   
+
             elif linker == None:
+                
+                mof.opt_energy = 0.
+                mof.de = 0.
+                mof.rmsd = 0.
+                with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
+                    lines = f.readlines()
+                for line in lines:
+                    if "cycle" in line:
+                        mof.sp_energy = float(line.split()[6])
+                        break
+            else:
+                print('MOF: ', mof.name)
+                print('FAULT\n')
+                
+                ''' SKIP FOR NOW '''
+                '''
                 question = input(f'\nDid not find linker for: {mof.name}. Change smiles for {mof.name}? [y/n]: ')
                 if question == 'n':
                     print(f"Did not find linker for: {mof.name}. Zero values will be appointed")
                     mof.opt_energy = 0.
-                    de = 0.
-                    rmsd = 0.
+                    mof.de = 0.
+                    mof.rmsd = 0.
                     with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
                         lines = f.readlines()
                     for line in lines:
@@ -327,25 +394,170 @@ class MOF:
                     mof.change_smiles(new_smiles)
                     linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
                     mof.opt_energy = float(linker.opt_energy)
-                    de = calc_de(mof, dict)
-                    rmsd = calc_rmsd(mof, dict)   
+                    mof.calc_de(dict)
+                    mof.calc_rmsd(mof, dict)
+                '''
+                ''' ----------- ''' 
 
-            
-            results_list.append([mof.name, de, de*627.51, rmsd, mof.linker_smiles, mof.sp_energy, mof.opt_energy])
-        
+            results_list.append([mof.name, mof.de, mof.de*627.51, mof.rmsd, mof.linker_smiles, all_linkers_dictionary[mof.linker_smiles], mof.sp_energy, mof.opt_energy])
+
         return results_list
+    
+    def calc_de(self, dict):
+
+        smiles = self.linker_smiles
+    
+        if smiles in dict and dict[smiles] is not None:
+            best_opt_energy = dict[smiles][0]
+    
+        with open(os.path.join(self.sp_path, "uffgradient"), 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if "cycle" in line:
+                    self.sp_energy = float(line.split()[6])
+                    break
+        
+        self.de = float(best_opt_energy) - float(self.sp_energy)
 
 
+    def calc_rmsd(self, dict):
+    
+        rmsd = []      
+    
+        copy(dict[self.linker_smiles][1], self.rmsd_path, 'final.xyz', 'final_opt.xyz')
+        copy(self.sp_path, self.rmsd_path, 'final.xyz', 'final_sp.xyz')
+        
+        os.chdir(self.rmsd_path)
+    
+        check = MOF.rmsd_p()
+
+        if check == False:
+            if input('Error while calculating the -p RMSD instance. Continue? [y/n]: ') == 'y':
+                pass
+            else:
+                return 0
+    
+        try:
+            for sp in ['final_sp.xyz', 'final_sp_mod.xyz']:
+                command = f"calculate_rmsd -e final_opt.xyz {sp}"
+                rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+        
+                command = f"calculate_rmsd -e --reorder-method hungarian final_opt.xyz {sp}"
+                rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            
+                command = f"calculate_rmsd -e --reorder-method inertia-hungarian final_opt.xyz {sp}"
+                rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+            
+                command = f"calculate_rmsd -e --reorder-method distance final_opt.xyz {sp}"
+                rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))        
+        
+        except Exception as e:
+            
+            print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
+            
+            return 0, False
+        
+    
+        minimum = float(rmsd[0].stdout)
+        for i in rmsd:
+            if float(i.stdout) < minimum:
+                minimum = float(i.stdout)
+                args = i.args
+    
+        with open('result.txt', 'w') as file:
+            file.write(str(minimum))
+            file.write('\n')
+            try:
+                file.write(args)
+            except:
+                print(f'Args not found for mof {self.rmsd_path}')
+                    
+        self.rmsd = minimum
+    
+        os.chdir(self.src_dir)
+    
+    @staticmethod
+    def rmsd_p(reorder = False, recursion_depth = 0):
+        
+        # Define a dictionary to map atomic numbers to symbols
+        atomic_symbols = {
+            0: 'X', 1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
+            11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
+            19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe',
+            27: 'Ni', 28: 'Co', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se',
+            35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo',
+            43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn',
+            51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La', 58: 'Ce',
+            59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy',
+            67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf', 73: 'Ta', 74: 'W',
+            75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
+            83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra', 89: 'Ac', 90: 'Th',
+            91: 'Pa', 92: 'U', 93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf',
+            99: 'Es', 100: 'Fm', 101: 'Md', 102: 'No', 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg',
+            107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg', 112: 'Cn', 113: 'Nh', 114: 'Fl',
+            115: 'Mc', 116: 'Lv', 117: 'Ts', 118: 'Og',
+        }
+    
+        if recursion_depth >= 3:
+            print("Recursion depth limit reached. Exiting.")
+            return False
+    
+        try:
+            if reorder == False:
+                os.system("calculate_rmsd -p final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+            else:
+                os.system("calculate_rmsd -p --reorder final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+    
+        except Exception as e:
+            print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
+            return False
+    
+        data = []
+        with open('final_sp_mod.txt', 'r') as input_file:
+            lines = input_file.readlines()
+    
+            for line_number, line in enumerate(lines):
                 
+                atomic_number = 0
+                if line_number < 2:
+                    continue
+                
+                parts = line.split()
+                if parts == []:
+                    continue
+    
+                try:
+                    atomic_number = int(parts[0])
+                except ValueError:
+                    input_file.close()
+                    return MOF.rmsd_p(reorder=True, recursion_depth=recursion_depth + 1)
+    
+                symbol = atomic_symbols.get(atomic_number)
+                coordinates = [float(coord) for coord in parts[1:4]]
+                data.append((symbol, coordinates))
+    
+        with open('final_sp_mod.xyz', 'w') as output_file:
+            output_file.write(f"{len(data)}\n")
+            output_file.write("\n")
+            for symbol, coords in data:
+                output_file.write(f"{symbol} {coords[0]:.6f} {coords[1]:.6f} {coords[2]:.6f}\n")
+        
+        return True
+
+
+
 @dataclass         
 class Linkers:
     
     # Initial parameters that can be changed
-    settings_path = os.path.join(os.getcwd(), 'settings.txt')
+    settings_path = os.path.join(MOF.src_dir, 'settings.txt')
     job_sh = 'job.sh'
     run_str = 'sbatch job.sh'
     opt_cycles = 1000
-    run_str_sp = f"bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
+    
+    # run_str_sp = f"bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
+    run_str_sp =  "bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
+    
     job_sh_path = os.path.join(MOF.src_dir, "Files")
 
     instances = []
@@ -356,12 +568,18 @@ class Linkers:
         Linkers.instances.append(self)
 
         self.smiles = smiles
-        self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles) # is not used yet
+        # self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles) # is not used yet
+        self.simple_smile = smiles
         self.mof_name = mof_name
         self.opt_path = os.path.join(MOF.linkers_path, self.simple_smile, self.mof_name)
         self.opt_energy = 0
 
-        os.makedirs(self.opt_path, exist_ok = True)
+        try:
+            os.makedirs(self.opt_path, exist_ok = True)
+        except:
+            return None
+
+
     
     def change_smiles(self, smiles):
         self.smiles = smiles
@@ -376,6 +594,8 @@ class Linkers:
             cls.job_sh = job_sh
 
     def optimize(self, rerun = False):
+        if os.path.exists(os.path.join(self.opt_path, 'uffconverged')):
+            return
 
         # Must be before os.chdir(self.opt_path)
         if rerun == False:
@@ -410,24 +630,41 @@ class Linkers:
         os.chdir(MOF.src_dir)
 
     @staticmethod
-    def check_optimization(linkers_list):
+    def check_optimization_status(linkers_list):
         Linkers.converged = []
         Linkers.not_converged = []
-        custom = []
+        
 
-        for linker in linkers_list:
-            if os.path.exists(os.path.join(linker.opt_path, 'not.uffconverged')):
-                Linkers.not_converged.append(linker)
-            elif os.path.exists(os.path.join(linker.opt_path)) == False:
+        for linker in linkers_list:            
+
+            ''' SKIP FOR NOW '''
+            '''
+            if os.path.exists(os.path.join(linker.opt_path)) == False:
                 print(f'\n{linker.opt_path} does not exits. Please check the _Linkers_ folder.')
                 new_smiles = input('Change the smiles to check again: ')
                 linker.change_smiles(new_smiles)
-                
                 Linkers.converged.append(linker)
+            '''
+            ''' ---------- '''
+            
+            if os.path.exists(os.path.join(linker.opt_path, 'uffconverged')):
+                # print(f'\nOptimization converged succesfully for {linker.smiles} [MOF = {linker.mof_name}]')
+                Linkers.converged.append(linker)
+
+            elif os.path.exists(os.path.join(linker.opt_path, 'not.uffconverged')):
+                Linkers.not_converged.append(linker)
+            
+            elif os.path.exists(os.path.join(linker.opt_path, 'not.uffconverged')) == False and os.path.exists(os.path.join(linker.opt_path, 'energy')):
+                print(f'\nOptimization run one circle for {linker.smiles} [MOF = {linker.mof_name}')
+                Linkers.not_converged.append(linker)
+        
             else:
-                print(f'\nOptimization converged succesfully for {linker.smiles} [MOF = {linker.mof_name}]')
-                Linkers.converged.append(linker)
-    
+                Linkers.not_converged.append(linker)
+                #pass # print(f'\nOptimization did not run for {linker.smiles} [MOF = {linker.mof_name}')
+        
+        ''' PASS FOR NOW '''
+        '''
+        custom = []
         for linker in Linkers.not_converged:
                 print(f'  \033[1;31m\nWARNING: Optimization did not converge for {linker.smiles} [MOF = {linker.mof_name}]\033[m')
                 print('Path: ', linker.opt_path, '\n')
@@ -444,11 +681,13 @@ class Linkers:
                     custom.append(linker)
                 else:
                     pass
-        
+
+
         if custom != []:
             Linkers.converged.extend(custom)
             Linkers.not_converged = [i for i in Linkers.not_converged if i not in custom]
-        
+        '''
+        ''' -------------- '''
         return Linkers.converged, Linkers.not_converged
     
     def define_linker_opt_energies(self):   
@@ -467,8 +706,167 @@ class Linkers:
                     energy_dict[instance.smiles] = [instance.opt_energy, instance.opt_path]
             else:
                 energy_dict[instance.smiles] = [instance.opt_energy, instance.opt_path]
-                        
+
         return energy_dict
+
+    
+
+
+
+# def calc_de(mof, dict):
+
+#     smiles = mof.linker_smiles
+
+#     if smiles in dict and dict[smiles] is not None:
+#         best_opt_energy = dict[smiles][0]
+
+#     with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
+#         lines = f.readlines()
+#         for line in lines:
+#             if "cycle" in line:
+#                 mof.sp_energy = float(line.split()[6])
+#                 break
+    
+#     mof.de = float(best_opt_energy) - float(mof.sp_energy)
+#     return mof.de
+
+# def calc_rmsd(mof, dict):
+
+#     rmsd = []
+
+#     smiles = mof.linker_smiles
+    
+
+#     copy(dict[mof.linker_smiles][1], mof.rmsd_path, 'final.xyz', 'final_opt.xyz')
+#     copy(mof.sp_path, mof.rmsd_path, 'final.xyz', 'final_sp.xyz')
+    
+#     os.chdir(mof.rmsd_path)
+
+#     print(" HEHEHEHEHE", mof.name)
+#     check = rmsd_p()
+#     if check == False:
+#         if input('Error while calculating the -p RMSD instance. Continue? [y/n]: ') == 'y':
+#             pass
+#         else:
+#             return 0
+
+#     try:
+#         for sp in ['final_sp.xyz', 'final_sp_mod.xyz']:
+#             command = f"calculate_rmsd -e final_opt.xyz {sp}"
+#             rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+    
+#             command = f"calculate_rmsd -e --reorder-method hungarian final_opt.xyz {sp}"
+#             rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+        
+#             command = f"calculate_rmsd -e --reorder-method inertia-hungarian final_opt.xyz {sp}"
+#             rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
+        
+#             command = f"calculate_rmsd -e --reorder-method distance final_opt.xyz {sp}"
+#             rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))        
+    
+#     except Exception as e:
+        
+#         print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
+        
+#         return 0, False
+    
+
+    
+#     minimum = float(rmsd[0].stdout)
+#     for i in rmsd:
+#         if float(i.stdout) < minimum:
+#             minimum = float(i.stdout)
+#             args = i.args
+
+#     with open('result.txt', 'w') as file:
+#         file.write(str(minimum))
+#         file.write('\n')
+#         try:
+#             file.write(args)
+#         except:
+#             print(f'Args not found for mof {mof.rmsd_path}')
+                
+#     rmsd_diff = minimum
+
+#     try:
+#         mof.rmsd = float(rmsd_diff)
+#     except:
+#         print(" CALCULATING RMSD FOR: ")
+#         print("MOFNAME: ", mof.name)
+#         print("SMILES: ", smiles)
+
+
+#     os.chdir(mof.src_dir)
+
+#     return mof.rmsd
+
+
+# def rmsd_p(reorder = False, recursion_depth = 0):
+    
+#     # Define a dictionary to map atomic numbers to symbols
+#     atomic_symbols = {
+#         0: 'X', 1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
+#         11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
+#         19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe',
+#         27: 'Ni', 28: 'Co', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se',
+#         35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo',
+#         43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn',
+#         51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La', 58: 'Ce',
+#         59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy',
+#         67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf', 73: 'Ta', 74: 'W',
+#         75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
+#         83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra', 89: 'Ac', 90: 'Th',
+#         91: 'Pa', 92: 'U', 93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf',
+#         99: 'Es', 100: 'Fm', 101: 'Md', 102: 'No', 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg',
+#         107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg', 112: 'Cn', 113: 'Nh', 114: 'Fl',
+#         115: 'Mc', 116: 'Lv', 117: 'Ts', 118: 'Og',
+#     }
+
+#     if recursion_depth >= 3:
+#         print("Recursion depth limit reached. Exiting.")
+#         return False
+
+#     try:
+#         if reorder == False:
+#             os.system("calculate_rmsd -p final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+#         else:
+#             os.system("calculate_rmsd -p --reorder final_opt.xyz final_sp.xyz > final_sp_mod.txt")
+
+#     except Exception as e:
+#         print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
+#         return False
+
+#     data = []
+#     with open('final_sp_mod.txt', 'r') as input_file:
+#         lines = input_file.readlines()
+
+#         for line_number, line in enumerate(lines):
+            
+#             atomic_number = 0
+#             if line_number < 2:
+#                 continue
+            
+#             parts = line.split()
+#             if parts == []:
+#                 continue
+
+#             try:
+#                 atomic_number = int(parts[0])
+#             except ValueError:
+#                 input_file.close()
+#                 return rmsd_p(reorder=True, recursion_depth=recursion_depth + 1)
+
+#             symbol = atomic_symbols.get(atomic_number)
+#             coordinates = [float(coord) for coord in parts[1:4]]
+#             data.append((symbol, coordinates))
+
+#     with open('final_sp_mod.xyz', 'w') as output_file:
+#         output_file.write(f"{len(data)}\n")
+#         output_file.write("\n")
+#         for symbol, coords in data:
+#             output_file.write(f"{symbol} {coords[0]:.6f} {coords[1]:.6f} {coords[2]:.6f}\n")
+    
+#     return True
 
 def load_objects():
     with open('cifs.pkl', 'rb') as file:
@@ -476,169 +874,61 @@ def load_objects():
     with open('linkers.pkl', 'rb') as file:
         linkers = pickle.load(file)
     
-    return cifs, linkers
-
-def calc_de(mof, dict):
-
-    smiles = mof.linker_smiles
-
-    if smiles in dict and dict[smiles] is not None:
-        best_opt_energy = dict[smiles][0]
-
-    with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
-        lines = f.readlines()
+    with open('linkers_codes_dictionary.txt', 'r') as file:
+        lines = file.readlines()
         for line in lines:
-            if "cycle" in line:
-                mof.sp_energy = float(line.split()[6])
-                break
+            all_linkers_dictionary[line[0]] = line.split()[-1]
     
-    mof.de = float(best_opt_energy) - float(mof.sp_energy)
-    return mof.de
+    return cifs, linkers, all_linkers_dictionary
 
-def calc_rmsd(mof, dict):
-
-    rmsd = []
-
-    smiles = mof.linker_smiles
+def settings_from_file(filepath):
     
-
-    copy(dict[mof.linker_smiles][1], mof.rmsd_path, 'final.xyz', 'final_opt.xyz')
-    copy(mof.sp_path, mof.rmsd_path, 'final.xyz', 'final_sp.xyz')
+    with open(filepath) as f:
+        lines = f.readlines()
     
-    os.chdir(mof.rmsd_path)
-
-    print(" HEHEHEHEHE", mof.name)
-    check = rmsd_p()
-    if check == False:
-        if input('Error while calculating the -p RMSD instance. Continue? [y/n]: ') == 'y':
-            pass
-        else:
-            return 0
-
+    run_str = ' '.join([i for i in lines[1].split()])
     try:
-        for sp in ['final_sp.xyz', 'final_sp_mod.xyz']:
-            command = f"calculate_rmsd -e final_opt.xyz {sp}"
-            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
-    
-            command = f"calculate_rmsd -e --reorder-method hungarian final_opt.xyz {sp}"
-            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
-        
-            command = f"calculate_rmsd -e --reorder-method inertia-hungarian final_opt.xyz {sp}"
-            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))
-        
-            command = f"calculate_rmsd -e --reorder-method distance final_opt.xyz {sp}"
-            rmsd.append(subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True))        
-    
-    except Exception as e:
-        
-        print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
-        
-        return 0, False
-    
-
-    
-    minimum = float(rmsd[0].stdout)
-    for i in rmsd:
-        if float(i.stdout) < minimum:
-            minimum = float(i.stdout)
-            args = i.args
-
-    with open('result.txt', 'w') as file:
-        file.write(str(minimum))
-        file.write('\n')
-        try:
-            file.write(args)
-        except:
-            print(f'Args not found for mof {mof.rmsd_path}')
-                
-    rmsd_diff = minimum
-
-    try:
-        mof.rmsd = float(rmsd_diff)
+        job_sh = lines[3].split()[0]
     except:
-        print(" CALCULATING RMSD FOR: ")
-        print("MOFNAME: ", mof.name)
-        print("SMILES: ", smiles)
+        pass
+    cycles = lines[5].split()[0]
 
+    return run_str, job_sh, cycles
 
-    os.chdir(mof.src_dir)
+def user_settings():
+    run_str = input("\nProvide the string with which the optimization program runs: ")
 
-    return mof.rmsd
-
-
-def rmsd_p(reorder = False, recursion_depth = 0):
+    question = input("\nIs there a file in MOFSynth/Files folder that is necessary to run your optimization programm? [y/n]: ")
+    if question == 'y':
+        job_sh = input("\nSpecify the file name: ")
+    else:
+        job_sh = None
     
-    # Define a dictionary to map atomic numbers to symbols
-    atomic_symbols = {
-        0: 'X', 1: 'H', 2: 'He', 3: 'Li', 4: 'Be', 5: 'B', 6: 'C', 7: 'N', 8: 'O', 9: 'F', 10: 'Ne',
-        11: 'Na', 12: 'Mg', 13: 'Al', 14: 'Si', 15: 'P', 16: 'S', 17: 'Cl', 18: 'Ar',
-        19: 'K', 20: 'Ca', 21: 'Sc', 22: 'Ti', 23: 'V', 24: 'Cr', 25: 'Mn', 26: 'Fe',
-        27: 'Ni', 28: 'Co', 29: 'Cu', 30: 'Zn', 31: 'Ga', 32: 'Ge', 33: 'As', 34: 'Se',
-        35: 'Br', 36: 'Kr', 37: 'Rb', 38: 'Sr', 39: 'Y', 40: 'Zr', 41: 'Nb', 42: 'Mo',
-        43: 'Tc', 44: 'Ru', 45: 'Rh', 46: 'Pd', 47: 'Ag', 48: 'Cd', 49: 'In', 50: 'Sn',
-        51: 'Sb', 52: 'Te', 53: 'I', 54: 'Xe', 55: 'Cs', 56: 'Ba', 57: 'La', 58: 'Ce',
-        59: 'Pr', 60: 'Nd', 61: 'Pm', 62: 'Sm', 63: 'Eu', 64: 'Gd', 65: 'Tb', 66: 'Dy',
-        67: 'Ho', 68: 'Er', 69: 'Tm', 70: 'Yb', 71: 'Lu', 72: 'Hf', 73: 'Ta', 74: 'W',
-        75: 'Re', 76: 'Os', 77: 'Ir', 78: 'Pt', 79: 'Au', 80: 'Hg', 81: 'Tl', 82: 'Pb',
-        83: 'Bi', 84: 'Po', 85: 'At', 86: 'Rn', 87: 'Fr', 88: 'Ra', 89: 'Ac', 90: 'Th',
-        91: 'Pa', 92: 'U', 93: 'Np', 94: 'Pu', 95: 'Am', 96: 'Cm', 97: 'Bk', 98: 'Cf',
-        99: 'Es', 100: 'Fm', 101: 'Md', 102: 'No', 103: 'Lr', 104: 'Rf', 105: 'Db', 106: 'Sg',
-        107: 'Bh', 108: 'Hs', 109: 'Mt', 110: 'Ds', 111: 'Rg', 112: 'Cn', 113: 'Nh', 114: 'Fl',
-        115: 'Mc', 116: 'Lv', 117: 'Ts', 118: 'Og',
-    }
-
-    if recursion_depth >= 3:
-        print("Recursion depth limit reached. Exiting.")
-        return False
-
+    cycles = input("\nPlease specify the number of optimization cycles (default = 1000): ")
     try:
-        if reorder == False:
-            os.system("calculate_rmsd -p final_opt.xyz final_sp.xyz > final_sp_mod.txt")
-        else:
-            os.system("calculate_rmsd -p --reorder final_opt.xyz final_sp.xyz > final_sp_mod.txt")
-
-    except Exception as e:
-        print(f"An error occurred while running the command calculate_rmsd: {str(e)}")
-        return False
-
-    data = []
-    with open('final_sp_mod.txt', 'r') as input_file:
-        lines = input_file.readlines()
-
-        for line_number, line in enumerate(lines):
-            
-            atomic_number = 0
-            if line_number < 2:
-                continue
-            
-            parts = line.split()
-            if parts == []:
-                continue
-
-            try:
-                atomic_number = int(parts[0])
-            except ValueError:
-                input_file.close()
-                return rmsd_p(reorder=True, recursion_depth=recursion_depth + 1)
-
-            symbol = atomic_symbols.get(atomic_number)
-            coordinates = [float(coord) for coord in parts[1:4]]
-            data.append((symbol, coordinates))
-
-    with open('final_sp_mod.xyz', 'w') as output_file:
-        output_file.write(f"{len(data)}\n")
-        output_file.write("\n")
-        for symbol, coords in data:
-            output_file.write(f"{symbol} {coords[0]:.6f} {coords[1]:.6f} {coords[2]:.6f}\n")
+        cycles = int(cycles)
+    except:
+        print("Not a valid value provided. Default value will be used")
+        cycles = '1000'
     
-    return True
+    return run_str, job_sh, cycles
+
+def copy(path1, path2, file_1, file_2 = None):
+    
+    if file_2 is None:
+        file_2 = file_1
+    
+    shutil.copy(os.path.join(path1, file_1), os.path.join(path2, file_2))
+
+    return
+
 
 def write_txt_results(results_list):
 
     with open(MOF.results_txt_path, "w") as f:
-        f.write('{:<50} {:<37} {:<37} {:<30} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
+        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
         for i in results_list:
-            f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<60} {i[5]:<30.3f} {i[6]:<30.3f}\n")
+            f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<10} {i[5]:<60} {i[6]:<30.3f} {i[7]:<30.3f}\n")
     return MOF.results_txt_path
 
         
@@ -649,7 +939,7 @@ def write_xlsx_results(results_list):
     sheet = workbook.active
 
     # Write headers
-    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
+    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
     sheet.append(headers)
 
     # Write results
