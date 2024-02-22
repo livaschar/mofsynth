@@ -26,6 +26,8 @@ from mofid.run_mofid import cif2mofid
 # from general import copy
 import re
 import openpyxl
+from pymatgen.io.cif import CifWriter
+from pymatgen.core.structure import IStructure
 
 
 all_linkers_dictionary = {}
@@ -72,11 +74,19 @@ def synth_eval(directory):
             copy(Linkers.job_sh_path, mof.sp_path, job_sh)
             
             # Create supercell, do the fragmentation, distinguish one linker, calculate single point energy
-            mof.create_supercell()
+            supercell_check = mof.create_supercell()
+            # if check_1 == 'False':
+            #     continue
             mof.fragmentation()
+            # if check_2 == 'False':
+            #     continue
             mof.obabel()
             mof.single_point()
 
+        # Check if supercell procedure runned correctly
+        if supercell_check == 'False':
+            MOF.fault_supercell.append(mof.name)
+            MOF.instances.pop()
 
         # Check if fragmentation procedure found indeed a linker
         fragm_check = mof.check_fragmentation()
@@ -191,6 +201,7 @@ class MOF:
     run_str_sp = "bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
     
     instances = []
+    fault_supercell = []
     fault_fragment = []
     fault_smiles = []
     unique_linkers = []
@@ -223,16 +234,30 @@ class MOF:
         copy(self.init_path, self.cif2cell_path, f"{self.name}.cif")
         
         os.chdir(self.cif2cell_path)
-       
-        command = ["cif2cell", "-f", f"{self.name}.cif", "--supercell=[2,2,2]", "-o", f"{self.name}_supercell.cif", "-p", "cif"]   
+
+        ''' cif2cell way '''
+        # command = ["cif2cell", "-f", f"{self.name}.cif", "--supercell=[2,2,2]", "-o", f"{self.name}_supercell.cif", "-p", "cif"]   
+        # try:
+        #     subprocess.run(command, capture_output=True, text=True, check=True)
+        # except ModuleNotFoundError:
+        #     raise ModuleNotFoundError
+        ''' ----------- '''
+
+        ''' pymatgen way '''
         try:
-            subprocess.run(command, capture_output=True, text=True, check=True)
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError
-        
+            structure = IStructure.from_file(f"{self.name}.cif")
+            supercell = structure*2
+            w = CifWriter(supercell)
+            w.write_file(f"{self.name}_supercell.cif")
+        except:
+            return False
+        ''' ----------- '''
+
         os.chdir(MOF.src_dir)
     
         copy(self.cif2cell_path, self.fragmentation_path, f"{self.name}_supercell.cif")
+
+        return True
         
         # print(f'\n \033[1;31mSupercell created\033[m ')
     
@@ -254,9 +279,11 @@ class MOF:
     
         command = ["obabel", "-icif", "linkers.cif", "-oxyz", "-Olinkers_prom_222.xyz", "-r"]   
         try:
-            subprocess.run(command, capture_output=True, text=True, check=True)
+            #subprocess.run(command, capture_output=True, text=True, check=True)
+            subprocess.run(command, check=True)
         except:
             raise ModuleNotFoundError
+        
     
         os.rename("linkers_prom_222.xyz","linker.xyz")
     
