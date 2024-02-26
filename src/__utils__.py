@@ -28,13 +28,11 @@ import re
 import openpyxl
 from pymatgen.io.cif import CifWriter
 from pymatgen.core.structure import IStructure
+from rdkit import Chem
 
 
-all_linkers_dictionary = {}
 
 def synth_eval(directory):
-
-    global linkers_dictionary
     
     # Create the working directory
     os.makedirs("Synth_folder", exist_ok=True)
@@ -67,24 +65,21 @@ def synth_eval(directory):
 
         # Check if its already initialized a MOF object
         if os.path.exists(os.path.join(mof.sp_path, "final.xyz")):
+            supercell_check = True
             pass
         else:
             # Copy .cif and job.sh in the mof directory
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
             copy(Linkers.job_sh_path, mof.sp_path, job_sh)
-            
+                        
             # Create supercell, do the fragmentation, distinguish one linker, calculate single point energy
             supercell_check = mof.create_supercell()
-            # if check_1 == 'False':
-            #     continue
             mof.fragmentation()
-            # if check_2 == 'False':
-            #     continue
             mof.obabel()
             mof.single_point()
 
         # Check if supercell procedure runned correctly
-        if supercell_check == 'False':
+        if supercell_check == False:
             MOF.fault_supercell.append(mof.name)
             MOF.instances.pop()
 
@@ -128,11 +123,10 @@ def synth_eval(directory):
             ''' ------------ '''
 
     # Find the unique linkers from the whole set of MOFs
-    all_linkers_dictionary = MOF.find_unique_linkers()
+    linkers_dictionary, numbers_linkers_dictionary = MOF.find_unique_linkers()
     
 
     # Proceed to the optimization procedure of every linker
-
     for linker in Linkers.instances:
         print(f'\n - \033[1;34mLinker under study: {linker.smiles} of {linker.mof_name}\033[m -')
         print(f'\n \033[1;31mOptimization calculation\033[m')
@@ -156,10 +150,13 @@ def synth_eval(directory):
             for mof_name in MOF.fault_smiles:
                 file.write(f'{mof_name}\n')
     
-    with open('linkers_codes_dictionary.txt', 'w') as file:
-        for key, value in all_linkers_dictionary.items():
+    with open('numbers_linkers_dictionary.txt', 'w') as file:
+        for key, value in numbers_linkers_dictionary.items():
             file.write(f'{key} : {value}\n')
     
+    with open('linkers_dictionary.txt', 'w') as file:
+        for key, value in linkers_dictionary.items():
+            file.write(f'{key} : {value}\n')
 
     return MOF.instances, Linkers.instances, MOF.fault_fragment, MOF.fault_smiles
 
@@ -169,10 +166,11 @@ def check_opt():
     converged, not_converged = Linkers.check_optimization_status(linkers)
     
     return(converged, not_converged)
+   
+
 
 def results():
     cifs, linkers, all_linkers_dictionary = load_objects()
-    print(all_linkers_dictionary)
 
     Linkers.check_optimization_status(linkers)
 
@@ -234,6 +232,7 @@ class MOF:
         copy(self.init_path, self.cif2cell_path, f"{self.name}.cif")
         
         os.chdir(self.cif2cell_path)
+       
 
         ''' cif2cell way '''
         # command = ["cif2cell", "-f", f"{self.name}.cif", "--supercell=[2,2,2]", "-o", f"{self.name}_supercell.cif", "-p", "cif"]   
@@ -252,13 +251,12 @@ class MOF:
         except:
             return False
         ''' ----------- '''
-
+        
         os.chdir(MOF.src_dir)
     
         copy(self.cif2cell_path, self.fragmentation_path, f"{self.name}_supercell.cif")
-
-        return True
         
+        return True
         # print(f'\n \033[1;31mSupercell created\033[m ')
     
     def fragmentation(self, rerun = False):
@@ -276,16 +274,24 @@ class MOF:
 
     def obabel(self):
         os.chdir(self.obabel_path)
-    
+
+        ''' CIF TO XYZ '''
         command = ["obabel", "-icif", "linkers.cif", "-oxyz", "-Olinkers_prom_222.xyz", "-r"]   
         try:
-            #subprocess.run(command, capture_output=True, text=True, check=True)
-            subprocess.run(command, check=True)
+            subprocess.run(command, capture_output=True, text=True, check=True)
         except:
             raise ModuleNotFoundError
-        
     
         os.rename("linkers_prom_222.xyz","linker.xyz")
+        ''' ----------- '''
+
+        ''' CIF TO MOL '''
+        command = ["obabel", "-icif", "linkers.cif", "-omol", "-Olinkers_prom_222.mol", "-r"]
+        try:
+            subprocess.run(command, capture_output=True, text=True, check=True)
+        except:
+            raise ModuleNotFoundError
+        ''' ----------- '''
     
         os.chdir(MOF.src_dir)
     
@@ -325,29 +331,83 @@ class MOF:
         # print(f'\n \033[1;31m Smiles code check over\033[m ')
         return True
     
+
+    def find_smiles_fragm(fragmentation_path):
+        smiles = []
+        
+        file = os.path.join(fragmentation_path, 'Output','python_smiles_parts.txt')
+        
+        with open(file) as f:
+            lines = f.readlines()
+        
+        for line in lines:
+            if line.split()[0] == 'linker':
+                number_of_linkers += 1
+                smiles.append(str(lines[1].split()[-1]))
+
+        return smiles, number_of_linkers
+    
+
+    def find_smiles_obabel(obabel_path):
+
+        os.chdir(obabel_path)
+        
+        command = ["obabel", "-icif", "linkers.cif", "-omol", "-Olinkers_prom_222.mol", "-r"]
+        try:
+            subprocess.run(command, capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error: {e}")
+            raise ModuleNotFoundError
+        
+        mol = Chem.MolFromMolFile('linkers_prom_222.mol')
+        smiles = Chem.MolToSmiles(mol)
+
+        os.chdir(MOF.src_dir)
+        
+        return smiles
+
+
     @classmethod
     def find_unique_linkers(cls):
+        
         linkers_dictionary = {}
-        all_linkers_dictionary = {}
+        numbers_linkers_dictionary = {}
 
         # Iterate through mof instances
         num = 0
         for instance in cls.instances:
             num += 1
-            
-            # Take the smiles code for this linker
-            file = os.path.join(instance.fragmentation_path, 'Output','python_smiles_parts.txt')
-            with open(file) as f:
-                lines = f.readlines()
-            linkers_dictionary[str(lines[1].split()[-1])] = str(num)
-            all_linkers_dictionary[str(num)] = str(lines[1].split()[-1])
 
-            instance.linker_smiles = str(lines[1].split()[-1])
+            # Take the smiles code for this linker
+            # smiles, number_of_linkers = MOF.find_smiles_fragm(instance.fragmentation_path)
+            smiles = MOF.find_smiles_obabel(instance.obabel_path)
+            
+            # if number_of_linkers > 1:
+            #     # go to obabel and see which linker did it find
+            #     smiles_2 = MOF.find_smiles_obabel(instance.obabel_path)
+            
+            # This sets the smile code
+            linkers_dictionary[smiles] = str(num)
+            numbers_linkers_dictionary[str(num)] = str(smiles)
+            
+            instance.linker_smiles = str(smiles)
             #instance.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', instance.linker_smiles)
         
-        num = 0
         for instance in cls.instances:
-            num += 1
+
+            ''' DELETE '''
+            # instance.linker_smiles_corrected = linkers_dictionary[instance.linker_smiles_corrected]
+            # if instance.linker_smiles == instance.linker_smiles_corrected:
+            #     continue
+            # else:
+            #     move_and_delete_contents(os.path.join(MOF.synth_path, '_Linkers_', instance.linker_smiles, instance.name), os.path.join(MOF.synth_path, '_Linkers_', instance.linker_smiles_corrected, instance.name))
+            #     instance.linker_smiles = instance.linker_smiles_corrected
+            #     instance.simple_smile = instance.linker_smiles
+            #     if instance.linker_smiles not in cls.unique_linkers:
+            #         cls.unique_linkers.append(instance.linker_smiles)
+            #         Linkers(instance.linker_smiles, instance.name)
+            #     continue
+            '''' ------------- '''
 
             instance.linker_smiles = linkers_dictionary[instance.linker_smiles]
             instance.simple_smile = instance.linker_smiles
@@ -362,17 +422,19 @@ class MOF:
             copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', 'linkers.cif')
             copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', 'linker.xyz')
         
-        return all_linkers_dictionary
-        
+        return linkers_dictionary, numbers_linkers_dictionary
     
-    def change_smiles(self, new_smiles):
-        if new_smiles in linkers_dictionary:
-            self.linker_smiles = linkers_dictionary[new_smiles]
-            self.simple_smile = self.linker_smiles
-        else:
-            # SEE THIS MORE. WHAT HAPPENS IF THERE IS AN ETERNAL LOOP
-            new_smiles = input('Please provide a valid smiles that already exists')
-            Linkers.change_smiles(new_smiles)
+
+
+    # def change_smiles(self, new_smiles):
+        
+    #     if new_smiles in linkers_dictionary:
+    #         self.linker_smiles = linkers_dictionary[new_smiles]
+    #         self.simple_smile = self.linker_smiles
+    #     else:
+    #         # SEE THIS MORE. WHAT HAPPENS IF THERE IS AN ETERNAL LOOP
+    #         new_smiles = input('Please provide a valid smiles that already exists')
+    #         Linkers.change_smiles(new_smiles)
 
     @staticmethod
     def analyse(cifs, linkers, energy_dict, all_linkers_dictionary):
@@ -382,13 +444,11 @@ class MOF:
             linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
 
             if linker != None and linker.smiles in energy_dict.keys():
-                
                 mof.opt_energy = float(linker.opt_energy)
                 mof.calc_de(energy_dict)
-                mof.calc_rmsd(energy_dict)   
+                mof.calc_rmsd(energy_dict)     
 
             elif linker == None:
-                
                 mof.opt_energy = 0.
                 mof.de = 0.
                 mof.rmsd = 0.
@@ -398,10 +458,11 @@ class MOF:
                     if "cycle" in line:
                         mof.sp_energy = float(line.split()[6])
                         break
+            
             else:
                 print('MOF: ', mof.name)
                 print('FAULT\n')
-                
+
                 ''' SKIP FOR NOW '''
                 '''
                 question = input(f'\nDid not find linker for: {mof.name}. Change smiles for {mof.name}? [y/n]: ')
@@ -425,9 +486,9 @@ class MOF:
                     mof.calc_rmsd(mof, dict)
                 '''
                 ''' ----------- ''' 
-
+            
             results_list.append([mof.name, mof.de, mof.de*627.51, mof.rmsd, mof.linker_smiles, all_linkers_dictionary[mof.linker_smiles], mof.sp_energy, mof.opt_energy])
-
+        
         return results_list
     
     def calc_de(self, dict):
@@ -449,7 +510,7 @@ class MOF:
 
     def calc_rmsd(self, dict):
     
-        rmsd = []      
+        rmsd = []        
     
         copy(dict[self.linker_smiles][1], self.rmsd_path, 'final.xyz', 'final_opt.xyz')
         copy(self.sp_path, self.rmsd_path, 'final.xyz', 'final_sp.xyz')
@@ -605,8 +666,6 @@ class Linkers:
             os.makedirs(self.opt_path, exist_ok = True)
         except:
             return None
-
-
     
     def change_smiles(self, smiles):
         self.smiles = smiles
@@ -621,9 +680,11 @@ class Linkers:
             cls.job_sh = job_sh
 
     def optimize(self, rerun = False):
+
+
         if os.path.exists(os.path.join(self.opt_path, 'uffconverged')):
             return
-
+        
         # Must be before os.chdir(self.opt_path)
         if rerun == False:
             copy(Linkers.job_sh_path, self.opt_path, Linkers.job_sh)
@@ -662,7 +723,7 @@ class Linkers:
         Linkers.not_converged = []
         
 
-        for linker in linkers_list:            
+        for linker in linkers_list:   
 
             ''' SKIP FOR NOW '''
             '''
@@ -896,6 +957,9 @@ class Linkers:
 #     return True
 
 def load_objects():
+    
+    all_linkers_dictionary = {}
+
     with open('cifs.pkl', 'rb') as file:
         cifs = pickle.load(file)
     with open('linkers.pkl', 'rb') as file:
@@ -907,7 +971,7 @@ def load_objects():
             all_linkers_dictionary[line[0]] = line.split()[-1]
     
     return cifs, linkers, all_linkers_dictionary
-
+    
 def settings_from_file(filepath):
     
     with open(filepath) as f:
@@ -978,6 +1042,37 @@ def write_xlsx_results(results_list):
     
     return MOF.results_xlsx_path
 
+def delete_files_except(folder_path, exceptions):
+    """
+    Delete all files in the folder except those in the exceptions list.
+    
+    Parameters:
+    - folder_path (str): The path to the folder.
+    - exceptions (list): List of filenames to be excluded from deletion.
+    """
+    try:
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            if os.path.isfile(file_path) and filename not in exceptions:
+                os.remove(file_path)
+                print(f"Deleted: {filename}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
+def move_and_delete_contents(source_path, destination_path):
+    # Create the destination directory if it doesn't exist
+    if not os.path.exists(destination_path):
+        os.makedirs(destination_path)
 
+    # Get a list of all files in the source directory
+    files = [f for f in os.listdir(source_path) if os.path.isfile(os.path.join(source_path, f))]
+
+    # Move each file to the destination directory
+    for file in files:
+        source_file = os.path.join(source_path, file)
+        destination_file = os.path.join(destination_path, file)
+        shutil.move(source_file, destination_file)
+
+    # Now, delete the original contents of folder1
+    shutil.rmtree(source_path)
