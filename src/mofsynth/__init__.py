@@ -14,29 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# python - m MOFSynth [function] [directory]
+"""
+MOF-Synth is a Python package for synthesizability evaluation, with
+emphasis on reticular chemistry.
 
-import sys
-import os
+.. note::
+    Currently, optimizations are employed using  Universal Forcefield (UFF) potential.
+"""
 
-# Add the directory containing your package to the sys.path
-package_directory = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(package_directory)
+__author__ = 'Charalampos G. Livas'
+__version__ = '0.0.0'
+__copyright__ = "Copyright (c) 2023 Charalampos G. Livas"
+__license__ = 'GPL-3.0-only'
 
-from __cli__ import _return_cli_parser, _transaction_summary
-from __utils__ import run
-
-
-if __name__ == '__main__':
-
-    args = _return_cli_parser().parse_args()
-    
-    _transaction_summary(args)
-
-    inp = input('\nIs this ok [y/n]: ')
-    print('\n')
-
-    if inp.lower() == 'y':
-        run(args.directory)
-    else:
-        print('Operation aborted.\n')
+from . utils import (
+        main, check_opt, export_results
+        )
