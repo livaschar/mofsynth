@@ -66,7 +66,6 @@ def synth_eval(directory):
         # Check if its already initialized a MOF object
         if os.path.exists(os.path.join(mof.sp_path, "final.xyz")):
             supercell_check = True
-            pass
         else:
             # Copy .cif and job.sh in the mof directory
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
@@ -104,10 +103,10 @@ def synth_eval(directory):
             ''' ------------ '''
         
         # Check if fragmentation procedure found a smiles code for this linker
-        smile_check = mof.check_smiles()
-        if smile_check == False:
-            MOF.fault_smiles.append(mof.name)
-            MOF.instances.pop()
+        # smile_check = mof.check_smiles()
+        # if smile_check == False:
+        #     MOF.fault_smiles.append(mof.name)
+        #     MOF.instances.pop()
 
             ''' SKIP FOR NOW '''
             '''
@@ -161,7 +160,7 @@ def synth_eval(directory):
     return MOF.instances, Linkers.instances, MOF.fault_fragment, MOF.fault_smiles
 
 def check_opt():
-    cifs, linkers, all_linkers_dictionary = load_objects()
+    cifs, linkers, linkers_dictionary = load_objects()
 
     converged, not_converged = Linkers.check_optimization_status(linkers)
     
@@ -170,7 +169,7 @@ def check_opt():
 
 
 def results():
-    cifs, linkers, all_linkers_dictionary = load_objects()
+    cifs, linkers, linkers_dictionary = load_objects()
 
     Linkers.check_optimization_status(linkers)
 
@@ -180,7 +179,7 @@ def results():
     # Best opt for each smiles code. {smile code as keys and value [opt energy, opt_path]}
     energy_dict = Linkers.find_the_best_opt_energies()
 
-    results_list = MOF.analyse(cifs, linkers, energy_dict, all_linkers_dictionary)
+    results_list = MOF.analyse(cifs, linkers, energy_dict, linkers_dictionary)
 
     txt_file_path = write_txt_results(results_list)
     xlsx_file_path = write_xlsx_results(results_list)
@@ -351,6 +350,8 @@ class MOF:
     def find_smiles_obabel(obabel_path):
 
         os.chdir(obabel_path)
+
+        smiles = None
         
         command = ["obabel", "-icif", "linkers.cif", "-omol", "-Olinkers_prom_222.mol", "-r"]
         try:
@@ -360,7 +361,11 @@ class MOF:
             raise ModuleNotFoundError
         
         mol = Chem.MolFromMolFile('linkers_prom_222.mol')
-        smiles = Chem.MolToSmiles(mol)
+        
+        if mol is not None:
+            smiles = Chem.MolToSmiles(mol)
+        # else:
+        #     print("Error: The RDKit molecule is None.")
 
         os.chdir(MOF.src_dir)
         
@@ -372,15 +377,24 @@ class MOF:
         
         linkers_dictionary = {}
         numbers_linkers_dictionary = {}
+        new_instances = []
 
         # Iterate through mof instances
         num = 0
         for instance in cls.instances:
             num += 1
+            # print('\nMOF unders study for unique linker: ', instance.name)
 
             # Take the smiles code for this linker
             # smiles, number_of_linkers = MOF.find_smiles_fragm(instance.fragmentation_path)
             smiles = MOF.find_smiles_obabel(instance.obabel_path)
+
+            if smiles != None:
+                new_instances.append(instance)
+            else:
+                MOF.fault_smiles.append(instance.name)
+                num = num - 1
+                continue
             
             # if number_of_linkers > 1:
             #     # go to obabel and see which linker did it find
@@ -392,6 +406,8 @@ class MOF:
             
             instance.linker_smiles = str(smiles)
             #instance.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', instance.linker_smiles)
+        
+        cls.instances = new_instances
         
         for instance in cls.instances:
 
@@ -437,7 +453,7 @@ class MOF:
     #         Linkers.change_smiles(new_smiles)
 
     @staticmethod
-    def analyse(cifs, linkers, energy_dict, all_linkers_dictionary):
+    def analyse(cifs, linkers, energy_dict, linkers_dictionary):
         results_list = []
 
         for mof in cifs:
@@ -487,7 +503,7 @@ class MOF:
                 '''
                 ''' ----------- ''' 
             
-            results_list.append([mof.name, mof.de, mof.de*627.51, mof.rmsd, mof.linker_smiles, all_linkers_dictionary[mof.linker_smiles], mof.sp_energy, mof.opt_energy])
+            results_list.append([mof.name, mof.de, mof.de*627.51, mof.rmsd, mof.linker_smiles, linkers_dictionary[mof.linker_smiles], mof.sp_energy, mof.opt_energy])
         
         return results_list
     
@@ -684,6 +700,17 @@ class Linkers:
 
         if os.path.exists(os.path.join(self.opt_path, 'uffconverged')):
             return
+        # MAYBE DELETE
+        else:
+            files_to_keep = ['linkers.cif', 'linker.xyz']
+            for file_name in os.listdir(self.opt_path):
+                file_path = os.path.join(self.opt_path, file_name)
+                if file_name not in files_to_keep:
+                    try:
+                        os.remove(file_path)
+                    except Exception as e:
+                        print(f"Error deleting {file_name}: {str(e)}")
+
         
         # Must be before os.chdir(self.opt_path)
         if rerun == False:
@@ -958,19 +985,19 @@ class Linkers:
 
 def load_objects():
     
-    all_linkers_dictionary = {}
+    linkers_dictionary = {}
 
     with open('cifs.pkl', 'rb') as file:
         cifs = pickle.load(file)
     with open('linkers.pkl', 'rb') as file:
         linkers = pickle.load(file)
     
-    with open('linkers_codes_dictionary.txt', 'r') as file:
+    with open('linkers_dictionary.txt', 'r') as file:
         lines = file.readlines()
         for line in lines:
-            all_linkers_dictionary[line[0]] = line.split()[-1]
+            linkers_dictionary[line[0]] = line.split()[-1]
     
-    return cifs, linkers, all_linkers_dictionary
+    return cifs, linkers, linkers_dictionary
     
 def settings_from_file(filepath):
     
