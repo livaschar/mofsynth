@@ -174,13 +174,6 @@ class MOF:
 
         smiles = None
         
-        command = ["obabel", "-icif", "linkers.cif", "-omol", "-Olinkers_prom_222.mol", "-r"]
-        try:
-            subprocess.run(command, capture_output=True, text=True, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error: {e}")
-            raise ModuleNotFoundError
-        
         mol = Chem.MolFromMolFile('linkers_prom_222.mol')
         
         if mol is not None:
