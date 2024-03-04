@@ -7,7 +7,51 @@ from . mof import MOF
 
 
 @dataclass
-class Linkers:    
+class Linkers:
+    r"""
+    Class for managing linker molecules and their optimization.
+
+    Attributes
+    ----------
+    job_sh : str
+        Default job script file name.
+    run_str : str
+        Default run string for optimization.
+    opt_cycles : int
+        Default number of optimization cycles.
+    run_str_sp : str
+        Default run string for single-point energy calculation.
+    job_sh_path : str
+        Default path for job script.
+    settings_path : str
+        Default path for settings file.
+    instances : list
+        List to store instances of the Linkers class.
+    converged : list
+        List to store converged linker instances.
+    not_converged : list
+        List to store not converged linker instances.
+
+    Methods
+    -------
+    change_smiles(smiles)
+        Change the SMILES code of a linker instance.
+
+    opt_settings(run_str, opt_cycles, job_sh=None)
+        Set optimization settings for all linker instances.
+
+    optimize(rerun=False)
+        Optimize the linker structure.
+
+    check_optimization_status(linkers_list)
+        Check the optimization status of linker instances.
+
+    define_linker_opt_energies()
+        Define the optimization energy for a converged linker instance.
+
+    find_the_best_opt_energies()
+        Find the best optimization energy for each SMILES code.
+    """
     # Initial parameters that can be changed
     
     job_sh = 'job.sh'
@@ -25,6 +69,16 @@ class Linkers:
     not_converged = []
 
     def __init__(self, smiles, mof_name):
+        r"""
+        Initialize a Linkers instance.
+
+        Parameters
+        ----------
+        smiles : str
+            SMILES code of the linker molecule.
+        mof_name : str
+            Name of the associated MOF.
+        """
         Linkers.instances.append(self)
 
         self.smiles = smiles
@@ -40,19 +94,50 @@ class Linkers:
             return None
     
     def change_smiles(self, smiles):
+        """
+        Change the SMILES code of the linker instance.
+
+        Parameters
+        ----------
+        smiles : str
+            New SMILES code.
+        """        
         self.smiles = smiles
         self.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', self.smiles)
         self.opt_path = os.path.join(MOF.linkers_path, self.simple_smile, self.mof_name)
 
     @classmethod
     def opt_settings(cls, run_str, opt_cycles, job_sh = None):
+        r"""
+        Set optimization settings for all linker instances.
+
+        Parameters
+        ----------
+        run_str : str
+            New run string for optimization.
+        opt_cycles : int
+            New number of optimization cycles.
+        job_sh : str, optional
+            New job script file name.
+        """
         cls.run_str = run_str
         cls.opt_cycles = opt_cycles
         if job_sh != None:
             cls.job_sh = job_sh
 
     def optimize(self, rerun = False):
+        r"""
+        Optimize the linker structure.
 
+        Parameters
+        ----------
+        rerun : bool, optional
+            Whether to rerun the optimization.
+
+        Notes
+        -----
+        This function updates the optimization settings, runs the optimization, and modifies necessary files.
+        """
         if os.path.exists(os.path.join(self.opt_path, 'uffconverged')):
             return
         else:
@@ -99,6 +184,19 @@ class Linkers:
 
     @staticmethod
     def check_optimization_status(linkers_list):
+        r"""
+        Check the optimization status of linker instances.
+
+        Parameters
+        ----------
+        linkers_list : list
+            List of linker instances.
+
+        Returns
+        -------
+        Tuple
+            A tuple containing lists of converged and not converged linker instances.
+        """
         Linkers.converged = []
         Linkers.not_converged = []
         
@@ -159,7 +257,9 @@ class Linkers:
         return Linkers.converged, Linkers.not_converged
     
     def define_linker_opt_energies(self):   
-        
+        r"""
+        Define the optimization energy for a converged linker instance.
+        """        
         with open(os.path.join(self.opt_path, 'uffenergy')) as f:
             lines = f.readlines()
         self.opt_energy = lines[1].split()[-1]
@@ -167,6 +267,14 @@ class Linkers:
     
     @classmethod
     def find_the_best_opt_energies(cls):
+        r"""
+        Find the best optimization energy for each SMILES code.
+
+        Returns
+        -------
+        Dict
+            A dictionary containing the best optimization energy and path for each SMILES code.
+        """
         energy_dict = {}
         for instance in Linkers.converged:
             if instance.smiles in energy_dict:

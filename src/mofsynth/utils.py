@@ -16,12 +16,42 @@
 
 
 import os
+import sys
 import pickle
 from . modules.mof import MOF
 from . modules.linkers import Linkers
-from . modules.other import copy, settings_from_file, user_settings, load_objects, write_txt_results, write_xlsx_results
+from . modules.other import (copy, settings_from_file,
+                             user_settings, load_objects,
+                             write_txt_results, write_xlsx_results)
 
 def main(directory, function):
+    r"""
+    Runs the specified function based on the provided parameters.
+
+    Parameters
+    ----------
+    directory : str
+        The path to the directory containing CIF files.
+    function : str
+        Name of the function to run. Supported values: 'main_run', 'check_opt', 'export_results'.
+
+    Raises
+    ------
+    ValueError
+        If an unsupported function name is provided.
+
+    Notes
+    -----
+    The 'main' function acts as a dispatcher, executing the corresponding functionality
+    based on the specified function name.
+
+    Supported Functions:
+    - 'main_run': Executes the main_run function with the given directory.
+    - 'check_opt': Executes the check_opt function that checks
+    which optimization runs are converged.
+    - 'export_results': Executes the export_results function and
+    creates files with the results.
+    """
     if function == 'main_run':
         main_run(directory)
     elif function == 'check_opt':
@@ -30,34 +60,47 @@ def main(directory, function):
         export_results()
     else:
         print('Wrong function. Aborting...')
-        exit()
+        sys.exit()
 
 
 def main_run(directory):
+    r"""
+    Perform the synthesizability evaluation for MOFs in the specified directory.
 
+    Parameters
+    ----------
+    directory : str
+        The directory containing CIF files for synthesizability evaluation.
+
+    Returns
+    -------
+    Tuple
+        A tuple containing instances of MOF and Linkers classes, and lists of MOFs with
+        faults in supercell creation and fragmentation procedures.
+    """
     # Create the working directory
     os.makedirs("Synth_folder", exist_ok=True)
-    
+
     # If settings file exists, read settings from there else ask for user input
     if os.path.exists(Linkers.settings_path):
         run_str, job_sh, opt_cycles = settings_from_file(Linkers.settings_path)
     else:
         run_str, job_sh, opt_cycles = user_settings()
-    
+
     Linkers.opt_settings(run_str, opt_cycles, job_sh)
 
     print(f'  \033[1;32m\nSTART OF SYNTHESIZABILITY EVALUATION\033[m')
-    
+
     # A list of cifs from the user soecified directory
-    user_dir = os.path.join("./%s" %directory)
+    user_dir = os.path.join(f"./{directory}")
     cifs = [item for item in os.listdir(user_dir) if item.endswith(".cif")]
-    
+
     if cifs == []:
         print(f"\nWARNING: No cif was found in: {user_dir}. Please check run.py\n")
         return 0
-    
+
     # Start procedure for each cif
-    for i, cif in enumerate(cifs):
+    for _, cif in enumerate(cifs):
 
         print(f'\n - \033[1;34mMOF under study: {cif[:-4]}\033[m -')
 
@@ -67,29 +110,29 @@ def main_run(directory):
         # Check if its already initialized a MOF object
         if os.path.exists(os.path.join(mof.sp_path, "final.xyz")):
             supercell_check = True
-            pass
         else:
             # Copy .cif and job.sh in the mof directory
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
             copy(Linkers.job_sh_path, mof.sp_path, job_sh)
-                        
-            # Create supercell, do the fragmentation, distinguish one linker, calculate single point energy
+
+            # Create supercell, do the fragmentation, distinguish one linker,
+            # calculate single point energy
             supercell_check = mof.create_supercell()
             mof.fragmentation()
             mof.obabel()
             mof.single_point()
 
         # Check if supercell procedure runned correctly
-        if supercell_check == False:
+        if supercell_check is False:
             MOF.fault_supercell.append(mof.name)
             MOF.instances.pop()
 
         # Check if fragmentation procedure found indeed a linker
         fragm_check = mof.check_fragmentation()
-        if fragm_check == False:
+        if fragm_check is False:
             MOF.fault_fragment.append(mof.name)
             MOF.instances.pop()
-            
+
             ''' SKIP FOR NOW '''
             '''
             question = input(f'Do you want to skip {mof.name}? [y/n]: ')
@@ -98,7 +141,8 @@ def main_run(directory):
                 MOF.instances.pop()
                 continue
             else:
-                print(f'Please manually put linkers.cif at this path {os.path.join(mof.fragmentation_path,"Output/MetalOxo")}. When ready please...')
+                print(f'Please manually put linkers.cif at this path
+                {os.path.join(mof.fragmentation_path,"Output/MetalOxo")}. When ready please...')
                 input('Press Enter to continue')
                 mof.fragmentation(rerun = True)
             '''
@@ -112,17 +156,19 @@ def main_run(directory):
                 MOF.instances.pop()
                 continue
             else:
-                print(f'Please manually write smiles code at {os.path.join(mof.fragmentation_path,"Output/python_smiles_parts.txt")}. When ready please...')
+                print(f'Please manually write smiles code at
+                {os.path.join(mof.fragmentation_path,"Output/python_smiles_parts.txt")}.
+                When ready please...')
                 input('Press Enter to continue')
             '''
             ''' ------------ '''
 
     # Find the unique linkers from the whole set of MOFs
     linkers_dictionary, numbers_linkers_dictionary = MOF.find_unique_linkers()
-    
+
     # Proceed to the optimization procedure of every linker
     for linker in Linkers.instances:
-        print(f'\n - \033[1;34mLinker under optimization study: {linker.smiles} of {linker.mof_name}\033[m -')
+        print(f'\n - \033[1;34mLinker under optimization study: {linker.smiles}, of {linker.mof_name}\033[m -')
         linker.optimize(rerun = False)
 
     # Right instances of MOF class
@@ -133,12 +179,12 @@ def main_run(directory):
     with open('linkers.pkl', 'wb') as file:
         pickle.dump(Linkers.instances, file)
 
-    if MOF.fault_fragment!=[]:
+    if MOF.fault_fragment != []:
         with open('fault_fragmentation.txt', 'w') as file:
             for mof_name in MOF.fault_fragment:
                 file.write(f'{mof_name}\n')
 
-    if MOF.fault_smiles!=[]:
+    if MOF.fault_smiles != []:
         with open('fault_smiles.txt', 'w') as file:
             for mof_name in MOF.fault_smiles:
                 file.write(f'{mof_name}\n')
@@ -156,7 +202,15 @@ def main_run(directory):
 
 
 def check_opt():
-    cifs, linkers, linkers_dictionary = load_objects()
+    r"""
+    Check the optimization status of linker molecules.
+
+    Returns
+    -------
+    Tuple
+        A tuple containing lists of converged and not converged linker instances.
+    """
+    _, linkers, _ = load_objects()
 
     converged, not_converged = Linkers.check_optimization_status(linkers)
     
@@ -171,21 +225,28 @@ def check_opt():
     return(converged, not_converged)
    
 def export_results():
-    
+    r"""
+    Export the results of the synthesizability evaluation.
+
+    Returns
+    -------
+    Tuple
+        A tuple containing file paths for the generated text and Excel result files.
+    """
     cifs, linkers, linkers_dictionary = load_objects()
 
     Linkers.check_optimization_status(linkers)
 
     for linker in Linkers.converged:
         linker.define_linker_opt_energies()
-    
+
     # Best opt for each smiles code. {smile code as keys and value [opt energy, opt_path]}
     energy_dict = Linkers.find_the_best_opt_energies()
 
     results_list = MOF.analyse(cifs, linkers, energy_dict, linkers_dictionary)
 
-    txt_file_path = write_txt_results(results_list, MOF.results_txt_path)
-    xlsx_file_path = write_xlsx_results(results_list, MOF.results_xlsx_path)
-    
-    return txt_file_path, xlsx_file_path
+    write_txt_results(results_list, MOF.results_txt_path)
+    write_xlsx_results(results_list, MOF.results_xlsx_path)
+
+    return MOF.results_txt_path, MOF.results_xlsx_path
 

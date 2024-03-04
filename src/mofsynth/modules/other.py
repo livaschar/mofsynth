@@ -2,6 +2,7 @@ import shutil
 import pickle
 import os
 import openpyxl
+import numpy as np
 
 def load_objects():
     
@@ -61,17 +62,16 @@ def user_settings():
     
     return run_str, job_sh, cycles
 
-
-
 def write_txt_results(results_list, results_txt_path):
 
     with open(results_txt_path, "w") as f:
         f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
         for i in results_list:
-            f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<10} {i[5]:<60} {i[6]:<30.3f} {i[7]:<30.3f}\n")
-    # return MOF.results_txt_path
+            if np.isnan(np.sum(i)):
+                f.write(f"{i[0]:<50} {i[1]:<37} {i[2]:<37} {i[3]:<30} {i[4]:<10} {i[5]:<60} {i[6]:<30} {i[7]:<30}\n") 
+            else:
+                f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<10} {i[5]:<60} {i[6]:<30.3f} {i[7]:<30.3f}\n")
 
-        
 def write_xlsx_results(results_list, results_xlsx_path):
     
     # Create a new workbook and select the active sheet
@@ -88,8 +88,6 @@ def write_xlsx_results(results_list, results_xlsx_path):
 
     # Save the workbook to the specified Excel file
     workbook.save(results_xlsx_path)
-    
-    # return MOF.results_xlsx_path
 
 def delete_files_except(folder_path, exceptions):
     """
