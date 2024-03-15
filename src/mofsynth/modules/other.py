@@ -65,7 +65,7 @@ def user_settings():
 def write_txt_results(results_list, results_txt_path):
 
     with open(results_txt_path, "w") as f:
-        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
+        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
         for i in results_list:
             if np.isnan(np.sum(i)):
                 f.write(f"{i[0]:<50} {i[1]:<37} {i[2]:<37} {i[3]:<30} {i[4]:<10} {i[5]:<60} {i[6]:<30} {i[7]:<30}\n") 
@@ -79,7 +79,7 @@ def write_xlsx_results(results_list, results_xlsx_path):
     sheet = workbook.active
 
     # Write headers
-    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
+    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
     sheet.append(headers)
 
     # Write results
