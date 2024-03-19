@@ -16,7 +16,7 @@ def load_objects():
     with open('linkers_dictionary.txt', 'r') as file:
         lines = file.readlines()
         for line in lines:
-            linkers_dictionary[line.split()[0]] = line.split()[-1]
+            linkers_dictionary[line.split()[-1]] = line.split()[0]
     
     return cifs, linkers, linkers_dictionary
 

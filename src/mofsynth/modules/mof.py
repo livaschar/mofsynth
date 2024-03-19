@@ -535,11 +535,22 @@ class MOF:
             return 0, False
         
     
-        minimum = float(rmsd[0].stdout)
+        try:
+            minimum = float(rmsd[0].stdout)
+        except:
+            minimum = 10000
+            print('WARNING: Error in float rmsd for: ', self.name, '\n')
+            print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
+
         for i in rmsd:
-            if float(i.stdout) < minimum:
-                minimum = float(i.stdout)
-                args = i.args
+            try:
+                current_value = float(i.stdout)
+                if current_value < minimum:
+                    minimum = float(i.stdout)
+                    args = i.args
+            except ValueError:
+                print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
+
     
         with open('result.txt', 'w') as file:
             file.write(str(minimum))
