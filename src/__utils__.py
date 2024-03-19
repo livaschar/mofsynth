@@ -464,20 +464,18 @@ class MOF:
                 mof.calc_de(energy_dict)
                 mof.calc_rmsd(energy_dict)     
 
-            elif linker == None:
+            else:
                 mof.opt_energy = 0.
                 mof.de = 0.
                 mof.rmsd = 0.
-                with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
-                    lines = f.readlines()
-                for line in lines:
-                    if "cycle" in line:
-                        mof.sp_energy = float(line.split()[6])
-                        break
-            
-            else:
-                print('MOF: ', mof.name)
-                print('FAULT\n')
+                if os.path.exists(os.path.join(mof.sp_path, "uffgradient")):
+                    with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
+                        lines = f.readlines()
+                    for line in lines:
+                        if "cycle" in line:
+                            mof.sp_energy = float(line.split()[6])
+                            break
+                mof.sp_energy = 0
 
                 ''' SKIP FOR NOW '''
                 '''
@@ -562,11 +560,22 @@ class MOF:
             return 0, False
         
     
-        minimum = float(rmsd[0].stdout)
+        try:
+            minimum = float(rmsd[0].stdout)
+        except:
+            minimum = 10000
+            print('WARNING: Error in float rmsd for: ', self.name, '\n')
+            print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
+
         for i in rmsd:
-            if float(i.stdout) < minimum:
-                minimum = float(i.stdout)
-                args = i.args
+            try:
+                current_value = float(i.stdout)
+                if current_value < minimum:
+                    minimum = float(i.stdout)
+                    args = i.args
+            except ValueError:
+                print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
+
     
         with open('result.txt', 'w') as file:
             file.write(str(minimum))
@@ -995,7 +1004,7 @@ def load_objects():
     with open('linkers_dictionary.txt', 'r') as file:
         lines = file.readlines()
         for line in lines:
-            linkers_dictionary[line.split()[0]] = line.split()[-1]
+            linkers_dictionary[line.split()[-1]] = line.split()[0]
     
     return cifs, linkers, linkers_dictionary
     
@@ -1044,7 +1053,7 @@ def copy(path1, path2, file_1, file_2 = None):
 def write_txt_results(results_list):
 
     with open(MOF.results_txt_path, "w") as f:
-        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
+        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
         for i in results_list:
             f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<10} {i[5]:<60} {i[6]:<30.3f} {i[7]:<30.3f}\n")
     return MOF.results_txt_path
@@ -1057,7 +1066,7 @@ def write_xlsx_results(results_list):
     sheet = workbook.active
 
     # Write headers
-    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(SP-OPT)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
+    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
     sheet.append(headers)
 
     # Write results
