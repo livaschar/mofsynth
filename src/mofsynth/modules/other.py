@@ -6,19 +6,19 @@ import numpy as np
 
 def load_objects():
     
-    linkers_dictionary = {}
+    id_smiles_dict = {}
 
     with open('cifs.pkl', 'rb') as file:
         cifs = pickle.load(file)
     with open('linkers.pkl', 'rb') as file:
         linkers = pickle.load(file)
     
-    with open('linkers_dictionary.txt', 'r') as file:
+    with open('smiles_id_dictionary.txt', 'r') as file:
         lines = file.readlines()
         for line in lines:
-            linkers_dictionary[line.split()[-1]] = line.split()[0]
+            id_smiles_dict[line.split()[-1]] = line.split()[0]
     
-    return cifs, linkers, linkers_dictionary
+    return cifs, linkers, id_smiles_dict
 
 
 def copy(path1, path2, file_1, file_2 = None):
@@ -65,12 +65,12 @@ def user_settings():
 def write_txt_results(results_list, results_txt_path):
 
     with open(results_txt_path, "w") as f:
-        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30}\n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"))
+        f.write('{:<50} {:<37} {:<37} {:<30} {:<10} {:<60} {:<30} {:<30} {:<10} \n'.format("NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]", 'Opt_status'))
         for i in results_list:
             if np.isnan(np.sum(i)):
-                f.write(f"{i[0]:<50} {i[1]:<37} {i[2]:<37} {i[3]:<30} {i[4]:<10} {i[5]:<60} {i[6]:<30} {i[7]:<30}\n") 
+                f.write(f"{i[0]:<50} {i[1]:<37} {i[2]:<37} {i[3]:<30} {i[4]:<10} {i[5]:<60} {i[6]:<30} {i[7]:<30} {i[8]:<10}\n") 
             else:
-                f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<10} {i[5]:<60} {i[6]:<30.3f} {i[7]:<30.3f}\n")
+                f.write(f"{i[0]:<50} {i[1]:<37.3f} {i[2]:<37.3f} {i[3]:<30.3f} {i[4]:<10} {i[5]:<60} {i[6]:<30.3f} {i[7]:<30.3f} {i[8]:<10}\n")
 
 def write_xlsx_results(results_list, results_xlsx_path):
     
@@ -79,7 +79,7 @@ def write_xlsx_results(results_list, results_xlsx_path):
     sheet = workbook.active
 
     # Write headers
-    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]"]
+    headers = ["NAME", "ENERGY_(OPT-SP)_[au]", "ENERGY_(OPT-SP)_[kcal/mol]", "RMSD_[A]", "LINKER_(CODE)", "LINKER_(SMILES)", "Linker_SinglePointEnergy_[au]", "Linker_OptEnergy_[au]", "Opt_status"]
     sheet.append(headers)
 
     # Write results

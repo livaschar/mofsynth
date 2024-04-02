@@ -1,4 +1,3 @@
-
 import os
 import argparse
 from . __init__ import __version__ as version
@@ -17,8 +16,13 @@ def _return_cli_parser():
         
     parser.add_argument('function', help='The function to be called. Choices: main, check_opt, export_results')
 
-    parser.add_argument('directory')
+    parser.add_argument('directory', help='The path to the directory containing all CIF files that the user wants to process.')
 
+    parser.add_argument('supercell_limit', nargs='?', default=None, 
+                        help='''\
+        The maximum side length for each edge of the unit cell in Angstroms.
+        This limit is used to determine whether a supercell should be created based on the dimensions of the original unit cell.
+        If not provided, the supercell creation will not be constrained by a specific limit.''')
     
     return parser
 
@@ -44,4 +48,6 @@ def _transaction_summary(args):
     print(f'  \033[1;31m{num_cifs}\033[m')
     print('\nExecuting the Function')
     print(f'  \033[1;31m{args.function}\033[m')
+    print('\nSupercell creation limit set to')
+    print(f'  \033[1;31m{args.supercell_limit}\033[m')
     print(col_size*"=")

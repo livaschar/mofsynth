@@ -24,7 +24,7 @@ from . modules.other import (copy, settings_from_file,
                              user_settings, load_objects,
                              write_txt_results, write_xlsx_results)
 
-def main(directory, function):
+def main(directory, function, supercell_limit):
     r"""
     Runs the specified function based on the provided parameters.
 
@@ -53,7 +53,7 @@ def main(directory, function):
     creates files with the results.
     """
     if function == 'main_run':
-        main_run(directory)
+        main_run(directory, supercell_limit)
     elif function == 'check_opt':
         check_opt()
     elif function == 'export_results':
@@ -63,7 +63,7 @@ def main(directory, function):
         sys.exit()
 
 
-def main_run(directory):
+def main_run(directory, supercell_limit):
     r"""
     Perform the synthesizability evaluation for MOFs in the specified directory.
 
@@ -107,7 +107,8 @@ def main_run(directory):
         # Initialize the mof name as an object of MOF class
         mof = MOF(cif[:-4])
 
-        # Check if its already initialized a MOF object
+        # Check if its already initialized a MOF object. Sometimes the code may break in the middle of a run.
+        # This serves as a quick way to ignore already analyzed instances.
         if os.path.exists(os.path.join(mof.sp_path, "final.xyz")):
             supercell_check = True
         else:
@@ -115,9 +116,9 @@ def main_run(directory):
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
             copy(Linkers.job_sh_path, mof.sp_path, job_sh)
 
-            # Create supercell, do the fragmentation, distinguish one linker,
+            # Create supercell, do the fragmentation, extract one linker,
             # calculate single point energy
-            supercell_check = mof.create_supercell()
+            supercell_check, _ = mof.create_supercell(supercell_limit)
             mof.fragmentation()
             mof.obabel()
             mof.single_point()
@@ -164,11 +165,11 @@ def main_run(directory):
             ''' ------------ '''
 
     # Find the unique linkers from the whole set of MOFs
-    linkers_dictionary, numbers_linkers_dictionary = MOF.find_unique_linkers()
+    smiles_id_dict = MOF.find_unique_linkers()
 
     # Proceed to the optimization procedure of every linker
     for linker in Linkers.instances:
-        print(f'\n - \033[1;34mLinker under optimization study: {linker.smiles}, of {linker.mof_name}\033[m -')
+        print(f'\n - \033[1;34mLinker under optimization study: {linker.smiles_code}, of {linker.mof_name}\033[m -')
         linker.optimize(rerun = False)
 
     # Right instances of MOF class
@@ -189,12 +190,8 @@ def main_run(directory):
             for mof_name in MOF.fault_smiles:
                 file.write(f'{mof_name}\n')
     
-    with open('numbers_linkers_dictionary.txt', 'w') as file:
-        for key, value in numbers_linkers_dictionary.items():
-            file.write(f'{key} : {value}\n')
-    
-    with open('linkers_dictionary.txt', 'w') as file:
-        for key, value in linkers_dictionary.items():
+    with open('smiles_id_dictionary.txt', 'w') as file:
+        for key, value in smiles_id_dict.items():
             file.write(f'{key} : {value}\n')
 
     return MOF.instances, Linkers.instances, MOF.fault_fragment, MOF.fault_smiles
@@ -215,14 +212,14 @@ def check_opt():
     converged, not_converged = Linkers.check_optimization_status(linkers)
     
     with open('converged.txt', 'w') as f:
-        for i in converged:
-            f.write(f"{i.smiles} {i.mof_name}\n")
+        for instance in converged:
+            f.write(f"{instance.smiles_code} {instance.mof_name}\n")
         
     with open('not_converged.txt', 'w') as f:
-        for i in not_converged:
-            f.write(f"{i.smiles} {i.mof_name}\n")
+        for instance in not_converged:
+            f.write(f"{instance.smiles_code} {instance.mof_name}\n")
     
-    return(converged, not_converged)
+    return Linkers.converged, Linkers.not_converged
    
 def export_results():
     r"""
@@ -233,17 +230,17 @@ def export_results():
     Tuple
         A tuple containing file paths for the generated text and Excel result files.
     """
-    cifs, linkers, linkers_dictionary = load_objects()
+    cifs, linkers, id_smiles_dict= load_objects()
 
     Linkers.check_optimization_status(linkers)
 
     for linker in Linkers.converged:
-        linker.define_linker_opt_energies()
+        linker.read_linker_opt_energies()
 
     # Best opt for each smiles code. {smile code as keys and value [opt energy, opt_path]}
-    energy_dict = Linkers.find_the_best_opt_energies()
+    best_opt_energy_dict = Linkers.define_best_opt_energy()
 
-    results_list = MOF.analyse(cifs, linkers, energy_dict, linkers_dictionary)
+    results_list = MOF.analyse(cifs, linkers, best_opt_energy_dict, id_smiles_dict)
 
     write_txt_results(results_list, MOF.results_txt_path)
     write_xlsx_results(results_list, MOF.results_xlsx_path)

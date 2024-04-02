@@ -15,28 +15,80 @@ class MOF:
     src_dir = os.getcwd()
 
     synth_path = "./Synth_folder"
-    linkers_path = os.path.join(synth_path, '_Linkers_')
-    results_txt_path = os.path.join(synth_path, 'synth_results_vol3.txt')
-    results_xlsx_path = os.path.join(synth_path, 'synth_results_vol3.xlsx')
+    output_file_name = 'synth_results'
+
+    path_to_linkers_directory = os.path.join(synth_path, '_Linkers_')
+    results_txt_path = os.path.join(synth_path, f'{output_file_name}.txt')
+    results_xlsx_path = os.path.join(synth_path, f'{output_file_name}.xlsx')
     run_str_sp = "bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
 
     instances = []
     fault_supercell = []
     fault_fragment = []
-    fault_smiles = []
-    unique_linkers = []
-    # linker_smiles, simple_smile might not be needed
+    fault_smiles = []    
+    smiles_id_dict = {}
+    new_instances = []
 
     def __init__(self, name):
+        r"""
+        Initialize a new MOF instance.
+        
+        Parameters
+        ----------
+        name : str
+            The name of the MOF instance.
+        
+        Explanation
+        -----------
+        This constructor method initializes a new instance of the 'mof' class with the provided name.
+        It adds the newly created instance to the list of instances stored in the 'instances' attribute of the 'MOF' class.
+        Additionally, it assigns the provided name to the 'name' attribute of the instance.
+        It then calls the '_initialize_paths()' method to set up any necessary paths for the instance.
+        Finally, it initializes several attributes, including 'opt_energy', 'sp_energy', 'de', and 'rmsd', with NaN values using NumPy's 'np.nan'.
+        
+        Example
+        -------
+        To create a new MOF instance named 'MOF1', you would call the constructor as follows:
+            mof_instance = MOF('MOF1')
+        This would create a new instance of the 'mof' class with the name 'MOF1', and initialize its attributes accordingly.
+        """
+
         MOF.instances.append(self)
         self.name = name
         self._initialize_paths()
+        self.linker_smiles = ''
         self.opt_energy = np.nan
         self.sp_energy = np.nan
         self.de = np.nan
         self.rmsd = np.nan
- 
+
+
     def _initialize_paths(self):
+        r"""
+        Initialize paths for the MOF instance.
+        
+        Explanation
+        -----------
+        This method sets up various paths necessary for the operation of the MOF instance.
+        It constructs paths for initialization, fragmentation, CIF2Cell, OpenBabel, Turbomole, single point calculations (SP),
+        and root-mean-square deviation (RMSD) calculations.
+        These paths are derived based on the synthetic path stored in the 'synth_path' attribute of the 'MOF' class
+        and the name of the MOF instance.
+        Directories corresponding to each path are created if they do not already exist using 'os.makedirs()'.
+        
+        Example
+        -------
+        Consider a 'MOF' instance named 'MOF1' with a synthetic path '/path/to/synth'.
+        Calling this method on 'MOF1' would create the following directory structure:
+            - '/path/to/synth/MOF1'
+            - '/path/to/synth/MOF1/fragmentation'
+            - '/path/to/synth/MOF1/cif2cell'
+            - '/path/to/synth/MOF1/obabel'
+            - '/path/to/synth/MOF1/turbomole'
+            - '/path/to/synth/MOF1/turbomole/sp'
+            - '/path/to/synth/MOF1/turbomole/rmsd'
+        """
+
         self.init_path = os.path.join(MOF.synth_path, self.name)
         self.fragmentation_path = os.path.join(MOF.synth_path, self.name, "fragmentation")
         self.cif2cell_path = os.path.join(MOF.synth_path, self.name, "cif2cell")
@@ -53,7 +105,7 @@ class MOF:
         os.makedirs(self.rmsd_path, exist_ok = True)
     
 
-    def create_supercell(self):
+    def create_supercell(self, limit):
         r"""
         Create a supercell for the MOF instance.
 
@@ -66,7 +118,6 @@ class MOF:
         
         os.chdir(self.cif2cell_path)
        
-
         ''' cif2cell way '''
         # command = ["cif2cell", "-f", f"{self.name}.cif", "--supercell=[2,2,2]", "-o", f"{self.name}_supercell.cif", "-p", "cif"]   
         # try:
@@ -78,7 +129,7 @@ class MOF:
         ''' pymatgen way '''
         try:
             structure = IStructure.from_file(f"{self.name}.cif")
-            if all(cell_length > 30 for cell_length in structure.lattice.abc):
+            if limit is not None and all(cell_length > 30 for cell_length in structure.lattice.abc):
                 os.rename(f"{self.name}.cif",f"{self.name}_supercell.cif")
             else:
                 supercell = structure*2
@@ -87,13 +138,13 @@ class MOF:
         except:
             return False
         ''' ----------- '''
-        
+
         os.chdir(MOF.src_dir)
-    
+
         copy(self.cif2cell_path, self.fragmentation_path, f"{self.name}_supercell.cif")
-        
-        return True
-    
+
+        return True, f"{self.name}_supercell.cif"
+
     def fragmentation(self, rerun = False):
         r"""
         Perform the fragmentation process for the MOF instance.
@@ -110,13 +161,13 @@ class MOF:
         """
         if rerun == False:
             os.chdir(self.fragmentation_path)
-            
+
             mofid = cif2mofid(f"{self.name}_supercell.cif")
-            
+
             os.chdir(MOF.src_dir)
 
         copy(os.path.join(self.fragmentation_path,"Output/MetalOxo"), self.obabel_path, "linkers.cif")
-        
+ 
     def obabel(self):
         r"""
         Convert the linkers.cif file to XYZ and MOL formats and keep the longest linker contained in CIF file.
@@ -170,10 +221,10 @@ class MOF:
         This function executes a Turbomole command for single-point calculation.
         The Turbomole command is specified by the `run_str_sp` attribute.
 
-        """        
+        """
 
-        copy(self.turbomole_path, self.sp_path, "linker.xyz")    
-        
+        copy(self.turbomole_path, self.sp_path, "linker.xyz")
+
         """ SINGLE POINT CALCULATION """
         os.chdir(self.sp_path)
 
@@ -183,8 +234,8 @@ class MOF:
             print(f"An error occurred while running the command for turbomole: {str(e)}")
 
         os.chdir(MOF.src_dir)
-        
-    
+
+
     def check_fragmentation(self):
         r"""
         Check if the fragmentation workflow successfully found any linkers in the supercell.
@@ -252,19 +303,19 @@ class MOF:
 
         """        
         smiles = []
-        
+
         file = os.path.join(fragmentation_path, 'Output','python_smiles_parts.txt')
-        
+
         with open(file) as f:
             lines = f.readlines()
-        
+
         for line in lines:
             if line.split()[0] == 'linker':
                 number_of_linkers += 1
                 smiles.append(str(lines[1].split()[-1]))
 
         return smiles, number_of_linkers
-    
+
     def find_smiles_obabel(obabel_path):
         r"""
         Extract Smiles code from the obabel-generated Mol file.
@@ -306,72 +357,78 @@ class MOF:
     @classmethod
     def find_unique_linkers(cls):
         r"""
-        Find unique linkers among MOF instances and initialize corresponding Linkers objects.
-
+        Process MOF instances to assign unique identifiers to their SMILES codes and organize data for linkers.
+        
         Returns
         -------
-        Tuple[Dict, Dict]
-            Two dictionaries - linkers_dictionary and numbers_linkers_dictionary.
-            linkers_dictionary maps Smiles codes to corresponding instance numbers,
-            and numbers_linkers_dictionary maps instance numbers to Smiles codes.
-
-        Notes
-        -----
-        This class method iterates through MOF instances, extracts Smiles codes using obabel,
-        and creates dictionaries to map Smiles codes to instance numbers and vice versa.
-        It updates instances with corrected Smiles codes and initializes Linkers objects.
-        """
-        from . linkers import Linkers
+        Tuple
+            A tuple containing two dictionaries: `smiles_id_dictionary` mapping SMILES codes to unique identifiers,
+            and `id_smiles_dictionary` mapping unique identifiers to SMILES codes.
         
-        linkers_dictionary = {}
-        numbers_linkers_dictionary = {}
-        new_instances = []
+        Explanation
+        -----------
+        This code block iterates through each MOF instance stored in the class's `instances` attribute.
+        For each instance, it attempts to extract the SMILES code using the `find_smiles_obabel` method from the `MOF` class.
+        If extraction is successful, the instance is appended to a list named `new_instances`. If extraction fails,
+        the instance's name is added to a list named `fault_smiles`, and processing continues to the next instance.
+        
+        For instances with successfully extracted SMILES codes, the block assigns a unique identifier to each SMILES code
+        if it's not already present in the `smiles_id_dictionary`.
+        The unique identifier is a numerical value incremented for each new SMILES code encountered.
+        The mapping of SMILES codes to unique identifiers is stored in `smiles_id_dictionary`,
+        while the reverse mapping is stored in `id_smiles_dictionary`.
+        
+        Additionally, the block performs several operations:
+        - It sets the `linker_smiles` attribute of each instance to its corresponding unique identifier from `smiles_id_dictionary`.
+        - It creates `Linkers` objects for each instance using the instance's `linker_smiles` and name.
+        - It copies certain files from the instance's directories to a new location based on the linker's SMILES code.
+        
+        Finally, the block updates the class's list of instances to contain only the instances for which the SMILES code
+        was successfully extracted, and returns the `smiles_id_dictionary` and `id_smiles_dictionary`.
+        
+        Note
+        ----
+        This code block modifies class attributes directly and performs file operations outside of its scope.
+        Ensure proper class and file management within the calling context.
+        
+        Example
+        -------
+        Consider a class `MOFProcessor` with several MOF instances stored in its `instances` attribute.
+        Executing this code block would process each instance, assign unique identifiers to SMILES codes,
+        organize data, and return the resulting dictionaries.
+        """
+
+        from . linkers import Linkers
 
         # Iterate through mof instances
-        num = 0
+        unique_id = 0
         for instance in cls.instances:
-            num += 1
-            print('\nMOF under study for unique linker: ', instance.name)
 
             # Take the smiles code for this linker
             # smiles, number_of_linkers = MOF.find_smiles_fragm(instance.fragmentation_path)
             smiles = MOF.find_smiles_obabel(instance.obabel_path)
 
             if smiles != None:
-                new_instances.append(instance)
-                # print(cls.instances.pop(num-1))
+                cls.new_instances.append(instance)
             else:
                 MOF.fault_smiles.append(instance.name)
-                num = num - 1
                 continue
-            
-            # This sets the smile code
-            linkers_dictionary[smiles] = str(num)
-            numbers_linkers_dictionary[str(num)] = str(smiles)
-            
-            instance.linker_smiles = str(smiles)
-            #instance.simple_smile = re.sub(re.compile('[^a-zA-Z0-9]'), '', instance.linker_smiles)
-        
-        cls.instances = new_instances
-        
-        for instance in cls.instances:
 
-            instance.linker_smiles = linkers_dictionary[instance.linker_smiles]
-            instance.simple_smile = instance.linker_smiles
+            # This sets the smile code equal to a unique id code
+            if smiles not in cls.smiles_id_dict.keys():
+                unique_id += 1
+                cls.smiles_id_dict[smiles] = str(unique_id) # smiles - unique_id
 
-            # Save the smiles code in the unique linkers
-            if instance.linker_smiles not in cls.unique_linkers:
-                cls.unique_linkers.append(instance.linker_smiles)
-            
-            # Init this linker as a 'Linkers' class object
+            instance.linker_smiles = cls.smiles_id_dict[smiles]
+
             Linkers(instance.linker_smiles, instance.name)
 
-            copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linkers.cif', 'linkers.cif')
-            copy(instance.obabel_path, os.path.join(MOF.linkers_path,instance.simple_smile, instance.name), 'linker.xyz', 'linker.xyz')
-        
-        return linkers_dictionary, numbers_linkers_dictionary
-    
+            copy(os.path.join(instance.fragmentation_path,"Output/MetalOxo"), os.path.join(MOF.path_to_linkers_directory, instance.linker_smiles, instance.name), 'linkers.cif', 'linkers.cif')
+            copy(instance.obabel_path, os.path.join(MOF.path_to_linkers_directory, instance.linker_smiles, instance.name), 'linker.xyz', 'linker.xyz')
 
+        cls.instances = cls.new_instances
+
+        return cls.smiles_id_dict
 
     # def change_smiles(self, new_smiles):
         
@@ -384,7 +441,7 @@ class MOF:
     #         Linkers.change_smiles(new_smiles)
 
     @staticmethod
-    def analyse(cifs, linkers, energy_dict, linkers_dictionary):
+    def analyse(cifs, linkers, best_opt_energy_dict, id_smiles_dict):
         r"""
         Analyze MOF instances based on calculated energies and linkers information.
 
@@ -394,7 +451,7 @@ class MOF:
             List of MOF instances to analyze.
         linkers : List[Linkers]
             List of Linkers instances.
-        energy_dict : Dict
+        best_opt_energy_dict : Dict
             Dictionary containing optimization energies for linkers.
         linkers_dictionary : Dict
             Dictionary mapping Smiles codes to instance numbers.
@@ -414,18 +471,19 @@ class MOF:
         for mof in cifs:
             linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
 
-            if linker != None and linker.smiles in energy_dict.keys():
+            with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                if "cycle" in line:
+                    mof.sp_energy = float(line.split()[6])
+                    break
+            
+            if linker != None and linker.smiles in best_opt_energy_dict.keys():
                 mof.opt_energy = float(linker.opt_energy)
-                mof.calc_de(energy_dict)
-                mof.calc_rmsd(energy_dict)
-            elif linker == None:
-                with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
-                    lines = f.readlines()
-                for line in lines:
-                    if "cycle" in line:
-                        mof.sp_energy = float(line.split()[6])
-                        break
-
+                mof.opt_status = linker.opt_status
+                mof.calc_de(mof.sp_energy, best_opt_energy_dict)
+                mof.calc_rmsd(best_opt_energy_dict)
+            
                 ''' SKIP FOR NOW '''
                 '''
                 question = input(f'\nDid not find linker for: {mof.name}. Change smiles for {mof.name}? [y/n]: ')
@@ -450,17 +508,17 @@ class MOF:
                 '''
                 ''' ----------- ''' 
             
-            results_list.append([mof.name, mof.de, mof.de*627.51, mof.rmsd, mof.linker_smiles, linkers_dictionary[mof.linker_smiles], mof.sp_energy, mof.opt_energy])
+            results_list.append([mof.name, mof.de, mof.de*627.51, mof.rmsd, mof.linker_smiles, id_smiles_dict[mof.linker_smiles], mof.sp_energy, mof.opt_energy, mof.opt_status])
         
         return results_list
     
-    def calc_de(self, dict):
+    def calc_de(self, best_opt_energy_dict):
         r"""
         Calculate the binding energy (DE) for the MOF instance.
 
         Parameters
         ----------
-        energy_dict : Dict
+        best_opt_energy_dict : Dict
             Dictionary containing the best optimization energy for each linker.
 
         Notes
@@ -470,27 +528,22 @@ class MOF:
         """
 
         smiles = self.linker_smiles
-    
-        if smiles in dict and dict[smiles] is not None:
-            best_opt_energy = dict[smiles][0]
-    
-        with open(os.path.join(self.sp_path, "uffgradient"), 'r') as f:
-            lines = f.readlines()
-            for line in lines:
-                if "cycle" in line:
-                    self.sp_energy = float(line.split()[6])
-                    break
         
-        self.de = float(best_opt_energy) - float(self.sp_energy)
+        if smiles in best_opt_energy_dict and best_opt_energy_dict[smiles] is not None:
+            best_opt_energy = best_opt_energy_dict[smiles][0]
+            self.de = float(best_opt_energy) - float(self.sp_energy)
+        else:
+            self.de = 0
+        
+        return self.de
 
-
-    def calc_rmsd(self, dict):
+    def calc_rmsd(self, best_opt_energy_dict):
         r"""
         Calculate the RMSD (Root Mean Square Deviation) for the MOF instance.
 
         Parameters
         ----------
-        energy_dict : Dict
+        best_opt_energy_dict : Dict
             Dictionary containing the best optimization energy for each linker.
 
         Notes
@@ -501,7 +554,7 @@ class MOF:
     
         rmsd = []        
     
-        copy(dict[self.linker_smiles][1], self.rmsd_path, 'final.xyz', 'final_opt.xyz')
+        copy(best_opt_energy_dict[self.linker_smiles][1], self.rmsd_path, 'final.xyz', 'final_opt.xyz')
         copy(self.sp_path, self.rmsd_path, 'final.xyz', 'final_sp.xyz')
         
         os.chdir(self.rmsd_path)

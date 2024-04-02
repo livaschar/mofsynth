@@ -28,7 +28,8 @@ if __name__ == '__main__':
     if inp == 'y':
         main(
             args.directory,
-            args.function
+            args.function,
+            args.supercell_limit
             )
             # args.c, args.e, args.s,
             # args.cubic_box, args.length,
