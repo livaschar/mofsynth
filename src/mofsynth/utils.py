@@ -246,4 +246,3 @@ def export_results():
     write_xlsx_results(results_list, MOF.results_xlsx_path)
 
     return MOF.results_txt_path, MOF.results_xlsx_path
-

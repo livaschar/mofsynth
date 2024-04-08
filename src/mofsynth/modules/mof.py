@@ -5,7 +5,7 @@ import subprocess
 from mofid.run_mofid import cif2mofid
 from pymatgen.io.cif import CifWriter
 from pymatgen.core.structure import IStructure
-from rdkit import Chem
+# from rdkit import Chem
 from . other import copy
 import numpy as np
 
@@ -196,7 +196,15 @@ class MOF:
         ''' ----------- '''
 
         ''' CIF TO MOL '''
-        command = ["obabel", "-icif", "linkers.cif", "-omol", "-Olinkers_prom_222.mol", "-r"]
+        # command = ["obabel", "-icif", "linkers.cif", "-omol", "-Olinkers_prom_222.mol", "-r"]
+        # try:
+        #     subprocess.run(command, capture_output=True, text=True, check=True)
+        # except:
+        #     raise ModuleNotFoundError
+        ''' ----------- '''
+
+        ''' CIF TO SMI '''
+        command = ["obabel", "linker.xyz", "-xc", "-O", "linker.smi"]
         try:
             subprocess.run(command, capture_output=True, text=True, check=True)
         except:
@@ -318,7 +326,7 @@ class MOF:
 
     def find_smiles_obabel(obabel_path):
         r"""
-        Extract Smiles code from the obabel-generated Mol file.
+        Extract Smiles code from the obabel-generated smi file.
 
         Parameters
         ----------
@@ -332,25 +340,32 @@ class MOF:
 
         Notes
         -----
-        This function changes the current working directory to the specified `obabel_path`, reads the
-        linkers_prom_222.mol file, and attempts to extract the Smiles code using RDKit. If successful,
-        it returns the Smiles code; otherwise, it returns None.
+        This function reads the linker.smi file, and attempts to extract the Smiles code using RDKit.
+        If successful, it returns the Smiles code; otherwise, it returns None.
 
         """
 
-        os.chdir(obabel_path)
+        ''' RDKIT & mol '''
+        # os.chdir(obabel_path)
+        # smiles = None
+        # mol = Chem.MolFromMolFile('linkers_prom_222.mol')
 
+        # if mol is not None:
+        #     smiles = Chem.MolToSmiles(mol)
+        # else:
+        #     print("Error: The RDKit molecule is None.")
+        # os.chdir(MOF.src_dir)
+        # return smiles
+        ''' ------------ '''
+        
         smiles = None
-        
-        mol = Chem.MolFromMolFile('linkers_prom_222.mol')
-        
-        if mol is not None:
-            smiles = Chem.MolToSmiles(mol)
-        else:
-            print("Error: The RDKit molecule is None.")
+        file = os.path.join(obabel_path, 'linker.smi')
 
-        os.chdir(MOF.src_dir)
-        
+        with open(file) as f:
+            lines = f.readlines()
+
+        smiles = str(lines[1].split()[0])
+
         return smiles
 
 
