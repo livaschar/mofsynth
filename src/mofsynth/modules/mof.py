@@ -358,13 +358,18 @@ class MOF:
         # return smiles
         ''' ------------ '''
         
+        ''' smi Obabel '''
         smiles = None
+        
+        file_size = os.path.getsize(os.path.join(obabel_path, 'linker.smi'))
+
         file = os.path.join(obabel_path, 'linker.smi')
 
-        with open(file) as f:
-            lines = f.readlines()
-
-        smiles = str(lines[1].split()[0])
+        if os.path.exists(file) and file_size > 9:
+            with open(file) as f:
+                lines = f.readlines()
+            smiles = str(lines[0].split()[0])
+        ''' --------- '''
 
         return smiles
 
