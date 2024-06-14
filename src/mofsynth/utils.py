@@ -242,7 +242,7 @@ def export_results():
 
     results_list = MOF.analyse(cifs, linkers, best_opt_energy_dict, id_smiles_dict)
 
-    write_txt_results(results_list, MOF.results_txt_path)
+    # write_txt_results(results_list, MOF.results_txt_path)
     write_xlsx_results(results_list, MOF.results_xlsx_path)
 
     return MOF.results_txt_path, MOF.results_xlsx_path

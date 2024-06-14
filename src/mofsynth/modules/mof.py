@@ -358,13 +358,18 @@ class MOF:
         # return smiles
         ''' ------------ '''
         
+        ''' smi Obabel '''
         smiles = None
+        
+        file_size = os.path.getsize(os.path.join(obabel_path, 'linker.smi'))
+
         file = os.path.join(obabel_path, 'linker.smi')
 
-        with open(file) as f:
-            lines = f.readlines()
-
-        smiles = str(lines[1].split()[0])
+        if os.path.exists(file) and file_size > 9:
+            with open(file) as f:
+                lines = f.readlines()
+            smiles = str(lines[0].split()[0])
+        ''' --------- '''
 
         return smiles
 
@@ -484,7 +489,7 @@ class MOF:
         results_list = []
 
         for mof in cifs:
-            linker = next((obj for obj in linkers if obj.smiles == mof.linker_smiles and obj.mof_name == mof.name), None)
+            linker = next((obj for obj in linkers if obj.smiles_code == mof.linker_smiles and obj.mof_name == mof.name), None)
 
             with open(os.path.join(mof.sp_path, "uffgradient"), 'r') as f:
                 lines = f.readlines()
@@ -493,10 +498,10 @@ class MOF:
                     mof.sp_energy = float(line.split()[6])
                     break
             
-            if linker != None and linker.smiles in best_opt_energy_dict.keys():
+            if linker != None and linker.smiles_code in best_opt_energy_dict.keys():
                 mof.opt_energy = float(linker.opt_energy)
                 mof.opt_status = linker.opt_status
-                mof.calc_de(mof.sp_energy, best_opt_energy_dict)
+                mof.calc_de(best_opt_energy_dict)
                 mof.calc_rmsd(best_opt_energy_dict)
             
                 ''' SKIP FOR NOW '''
@@ -605,10 +610,11 @@ class MOF:
     
         try:
             minimum = float(rmsd[0].stdout)
+            args = rmsd[0].args
         except:
             minimum = 10000
             print('WARNING: Error in float rmsd for: ', self.name, '\n')
-            print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
+            print(f"Warning: Unable to convert {rmsd[0].stdout} to float for {rmsd[0].args}")
 
         for i in rmsd:
             try:
@@ -617,7 +623,8 @@ class MOF:
                     minimum = float(i.stdout)
                     args = i.args
             except ValueError:
-                print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
+                pass
+                # print(f"Warning: Unable to convert {i.stdout} to float for {i.args}")
 
     
         with open('result.txt', 'w') as file:

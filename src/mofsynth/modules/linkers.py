@@ -89,7 +89,7 @@ class Linkers:
 
         self.smiles_code = smiles_code
         self.mof_name = mof_name
-        self.opt_path = os.path.join(MOF.linkers_path, self.smiles_code, self.mof_name)
+        self.opt_path = os.path.join(MOF.path_to_linkers_directory, self.smiles_code, self.mof_name)
         self.opt_energy = 0
         self.opt_status = 'not_converged'
 
