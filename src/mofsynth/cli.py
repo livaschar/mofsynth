@@ -6,11 +6,11 @@ from . __init__ import __version__ as version
 def _return_cli_parser():
     
     parser = argparse.ArgumentParser(
-            prog='mofsynth-cli',
-            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-            description='Access synthesizability from a directory containig ``.cif`` files.',
-            epilog='''A command line utility based on the MOFSynth package.'''
-            )
+                                    prog='mofsynth',
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                    description='Access synthesizability from a directory containig ``.cif`` files.',
+                                    epilog='''A command line utility based on the MOFSynth package.'''
+                                    )
 
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
         
