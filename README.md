@@ -1,7 +1,7 @@
 # MOFSynth
 
 <h1 align="center">
-  <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/tree/0.2/docs/images/synth_logo_cropped.png"/>
+  <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.png"/>
 </h1>
 https://github.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.png
 
