@@ -5,7 +5,7 @@
 </h1>
 
 <h1 align="center">
-  <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.svg" style="width: 300px;"/>
+  <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.png" style="width: 300px;"/>
 </h1>
 
 
