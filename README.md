@@ -3,8 +3,9 @@
 <h1 align="center">
   <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.svg"/>
 </h1>
+
 <h1 align="center">
-  <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.svg"/>
+  <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/0.2/docs/images/synth_logo_cropped.svg" style="width: 200px;"/>
 </h1>
 
 
