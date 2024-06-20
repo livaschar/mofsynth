@@ -32,10 +32,9 @@ Paper under review
 ## ⚙️  Installation
 It is strongly recommended to **perform the installation inside a virtual environment**.
 
-Check the [installation steps](https://moxel.readthedocs.io/en/stable/installation.html).
-
-Assuming an activated virtual environment:
 ```sh
+python -m venv <venvir_name>
+source <venvir_name>/bin/activate
 pip install mofsynth
 ```
 
