@@ -41,15 +41,15 @@ pip install mofsynth
 
 ### Requires:
 To run MOFSynth, the following modules and tools must be present in your system:
-1. **mofid**: A Python library for MOF identification and characterization. [snurr-group/mofid ](https://github.com/snurr-group/mofid)
-2. **pymatgen**: A robust materials analysis library. [materialsproject/pymatgen](https://github.com/materialsproject/pymatgen)
+1. **pymatgen**: A robust materials analysis library. [materialsproject/pymatgen](https://github.com/materialsproject/pymatgen)
    - pip install pymatgen
-4. **Open Babel**: An open-source chemistry toolbox for converting chemical file formats. [openbabel/openbabel](https://github.com/openbabel/openbabel)
+2. **Open Babel**: An open-source chemistry toolbox for converting chemical file formats. [openbabel/openbabel](https://github.com/openbabel/openbabel)
    - pip install openbabel
-6. **TURBOMOLE**: A computational chemistry program package.
-   - Ensure it is properly installed and configured in your system. Refer to the [TURBOMOLE installation guide](https://www.turbomole.org/).
-7. **calculate_rmsd**: A tool for calculating root-mean-square deviations (RMSD). [charnley/rmsd](https://github.com/charnley/rmsd)
+3. **calculate_rmsd**: A tool for calculating root-mean-square deviations (RMSD). [charnley/rmsd](https://github.com/charnley/rmsd)
    - pip install calculate_rmsd
+4. **mofid**: A Python library for MOF identification and characterization. [snurr-group/mofid ](https://github.com/snurr-group/mofid)
+5. **TURBOMOLE**: A computational chemistry program package.
+   - Ensure it is properly installed and configured in your system. Refer to the [TURBOMOLE installation guide](https://www.turbomole.org/).
 
 ## 💻 Browser-Based MOFid
 Coming Soon
@@ -62,7 +62,7 @@ Check the [tutorial](https://moxel.readthedocs.io/en/stable/tutorial.html).
 </p>
 
 ## :warning: Problems?
-Don't hesitate to communicate at [email](mailto:chemp1167@edu.chemistry.uoc.gr)
+Don't hesitate to communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
 
 ## 📇 TODO
 
