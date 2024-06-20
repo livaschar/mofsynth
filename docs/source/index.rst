@@ -36,8 +36,9 @@ the discovery and development of new MOFs.
 Objective
 ---------
 
-A major chunk of time in an experimental study goes into accessing the synthesizability
-conditions, rather than focusing on the productive steps.
+A major chunk of time in an experimental study goes into assessing the synthesizability
+of the materials and trying to find the best possible synthesizability routes,
+rather than focusing on the productive steps.
 
 MOFSynth aims to provide a **simple and fast interface to access the synthesizability
 of MOFs**, in order to choose between possible candidates or even suggest the most promising ones.
