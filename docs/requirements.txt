@@ -40,8 +40,8 @@ tqdm==4.66.2
 tzdata==2024.1
 uncertainties==3.1.7
 urllib3==2.2.1
-openbabel=3.1.1
-rmsd=1.5.1
+openbabel==3.1.1
+rmsd==1.5.1
 Sphinx
 sphinx-argparse
 sphinx-code-tabs
