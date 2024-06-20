@@ -62,7 +62,7 @@ Check the [tutorial](https://moxel.readthedocs.io/en/stable/tutorial.html).
 </p>
 
 ## :warning: Problems?
-Don't hesitate to communicate @ [email](mailto:chemp1167@edu.chemistry.uoc.gr)
+Don't hesitate to communicate at [email](mailto:chemp1167@edu.chemistry.uoc.gr)
 
 ## 📇 TODO
 
