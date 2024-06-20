@@ -36,7 +36,7 @@ innovative synthesis and experimental validation*, rather than on labor-intensiv
 Its **user-friendly interface** and robust functionality make it an invaluable resource for accelerating
 the discovery and development of new MOFs.
 
-**All you need is a** ``.cif`` **!**
+**All you need is your** ``.cif`` **!**
 
 Objective
 ---------
