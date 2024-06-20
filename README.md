@@ -41,14 +41,14 @@ pip install mofsynth
 
 ### Requires:
 To run MOFSynth, the following modules and tools must be present in your system:
-1. **mofid**: A Python library for MOF identification and characterization. @snurr-group/mofid 
-2. **pymatgen**: A robust materials analysis library. @materialsproject/pymatgen
+1. **mofid**: A Python library for MOF identification and characterization. [snurr-group/mofid ](https://github.com/snurr-group/mofid)
+2. **pymatgen**: A robust materials analysis library. [materialsproject/pymatgen](https://github.com/materialsproject/pymatgen)
    pip install pymatgen
-4. **Open Babel**: An open-source chemistry toolbox for converting chemical file formats. @openbabel/openbabel
+4. **Open Babel**: An open-source chemistry toolbox for converting chemical file formats. [openbabel/openbabel](https://github.com/openbabel/openbabel)
    pip install openbabel
 5. **TURBOMOLE**: A computational chemistry program package.
    - Ensure it is properly installed and configured in your system. Refer to the [TURBOMOLE installation guide](https://www.turbomole.org/).
-6. **calculate_rmsd**: A tool for calculating root-mean-square deviations (RMSD). @charnley/rmsd
+6. **calculate_rmsd**: A tool for calculating root-mean-square deviations (RMSD). [charnley/rmsd](https://github.com/charnley/rmsd)
      pip install calculate_rmsd
 
 ## 💻 Browser-Based MOFid
