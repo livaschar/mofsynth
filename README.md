@@ -1,6 +1,6 @@
 # MOFSynth
 <h1 align="center">
-  <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/blob/0.2/docs/source/images/synth_logo_cropped.png" style="width: 300px;"/>
+  <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/main/docs/source/images/synth_logo_cropped.png" style="width: 300px;"/>
 </h1>
 
 
