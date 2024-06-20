@@ -1,4 +1,4 @@
-.. Moxel documentation master file, created by
+.. MOFsynth documentation master file, created by
    sphinx-quickstart on Thu Jun 20 11:20:11 2024.
 
 .. image:: images/synth_logo_cropped.png
