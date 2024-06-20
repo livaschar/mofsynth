@@ -1,7 +1,6 @@
 # MOFSynth
-<<<<<<< 0.2
 <h1 align="center">
-  <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/0.2/docs/source/images/synth_logo_cropped.png" style="width: 300px;"/>
+  <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/blob/0.2/docs/source/images/synth_logo_cropped.png" style="width: 300px;"/>
 </h1>
 
 
@@ -9,8 +8,6 @@
 
 [![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=yellow&label=Python&labelColor=black&color=blue)](https://www.python.org/downloads/)
 [![Licensed under GPL-3.0-only](https://img.shields.io/badge/GPL--3.0--only-gold?label=License&labelColor=black)](https://spdx.org/licenses/GPL-3.0-only.html)
-[![pip install pymoxel](https://img.shields.io/badge/install-blue?logo=pypi&logoColor=yellow&label=PyPI&labelColor=black)](https://pypi.org/project/pymoxel/)
-[![PyPI version](https://badge.fury.io/py/pymoxel.svg)](https://badge.fury.io/py/pymoxel)
 
 </h4>
 
@@ -57,11 +54,7 @@ To run MOFSynth, the following modules and tools must be present in your system:
 Coming Soon
 
 ## 📖 Usage example
-Check the [tutorial](https://moxel.readthedocs.io/en/stable/tutorial.html).
-
-<p align="center">
-  <img alt="Voxels" src="https://raw.githubusercontent.com/adosar/moxel/master/docs/source/images/voxels.gif" width="25%"/>
-</p>
+Check the [tutorial]().
 
 ## :warning: Problems?
 Don't hesitate to communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
@@ -71,4 +64,4 @@ Don't hesitate to communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
 
 ## 📑 License
 MOFSynth is released under the [GNU General Public License v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html).
-=======
+
