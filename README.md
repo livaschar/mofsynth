@@ -35,6 +35,8 @@ It is strongly recommended to **perform the installation inside a virtual enviro
 ```sh
 python -m venv <venvir_name>
 source <venvir_name>/bin/activate
+```
+```sh
 pip install mofsynth
 ```
 
