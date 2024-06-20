@@ -27,21 +27,7 @@ This allows researchers to focus more on innovative synthesis and experimental v
 rather than on preparatory tasks.
 
 ## 📰 Citing MOXελ
-If you use ΜΟΧελ in your research, please consider citing the following work:
-
-    @article{Sarikas2024,
-    title = {Gas adsorption meets deep learning: voxelizing the potential energy surface of metal-organic frameworks},
-    volume = {14},
-    ISSN = {2045-2322},
-    url = {http://dx.doi.org/10.1038/s41598-023-50309-8},
-    DOI = {10.1038/s41598-023-50309-8},
-    number = {1},
-    journal = {Scientific Reports},
-    publisher = {Springer Science and Business Media LLC},
-    author = {Sarikas,  Antonios P. and Gkagkas,  Konstantinos and Froudakis,  George E.},
-    year = {2024},
-    month = jan
-    }
+Paper under review
 
 ## ⚙️  Installation
 It is strongly recommended to **perform the installation inside a virtual environment**.
@@ -50,7 +36,7 @@ Check the [installation steps](https://moxel.readthedocs.io/en/stable/installati
 
 Assuming an activated virtual environment:
 ```sh
-pip install pymoxel
+pip install mofsynth
 ```
 
 ## 📖 Usage example
