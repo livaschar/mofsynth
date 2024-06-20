@@ -1,4 +1,4 @@
-.. image:: images/mofsynth_logo_cropped.svg
+.. image:: images/synth_logo_cropped.png
    :width: 600
    :align: center
 
