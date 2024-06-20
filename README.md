@@ -39,6 +39,21 @@ Assuming an activated virtual environment:
 pip install mofsynth
 ```
 
+### Requires:
+To run MOFSynth, the following modules and tools must be present in your system:
+1. **mofid**: A Python library for MOF identification and characterization. @snurr-group/mofid 
+2. **pymatgen**: A robust materials analysis library. @materialsproject/pymatgen
+   pip install pymatgen
+4. **Open Babel**: An open-source chemistry toolbox for converting chemical file formats. @openbabel/openbabel
+   pip install openbabel
+5. **TURBOMOLE**: A computational chemistry program package.
+   - Ensure it is properly installed and configured in your system. Refer to the [TURBOMOLE installation guide](https://www.turbomole.org/).
+6. **calculate_rmsd**: A tool for calculating root-mean-square deviations (RMSD). @charnley/rmsd
+     pip install calculate_rmsd
+
+## 💻 Browser-Based MOFid
+Coming Soon
+
 ## 📖 Usage example
 Check the [tutorial](https://moxel.readthedocs.io/en/stable/tutorial.html).
 
@@ -50,10 +65,7 @@ Check the [tutorial](https://moxel.readthedocs.io/en/stable/tutorial.html).
 Don't hesitate to communicate @chemp1167@edu.chemistry.uoc.gr
 
 ## 📇 TODO
-1. CLI for training [RetNet](https://www.nature.com/articles/s41598-023-50309-8).
-2. Improve performance
-3. Improve voxelization scheme
-4. Improve modeling of interactions
+
 
 ## 📑 License
 MOFSynth is released under the [GNU General Public License v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html).
