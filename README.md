@@ -26,7 +26,7 @@ minimizing the time and labor traditionally required for these experimental prep
 This allows researchers to focus more on innovative synthesis and experimental validation
 rather than on preparatory tasks.
 
-## 📰 Citing MOXελ
+## 📰 Citing MOFSynth
 Paper under review
 
 ## ⚙️  Installation
