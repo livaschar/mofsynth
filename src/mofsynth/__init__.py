@@ -15,15 +15,18 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-MOF-Synth is a Python package for Generation, Optimization, structural calculation
-and synthesizability evaluation of MOFs, with emphasis on reticular chemistry.
+MOF-Synth is a Python package for synthesizability evaluation, with
+emphasis on reticular chemistry.
 
 .. note::
-    Currently, optimization is conducted with the Universal Forcefield (UFF) potential.
+    Currently, optimizations are employed using  Universal Forcefield (UFF) potential.
 """
 
 __author__ = 'Charalampos G. Livas'
-__version__ = '0.0.0'
+__version__ = '0.2.2'
 __copyright__ = "Copyright (c) 2023 Charalampos G. Livas"
 __license__ = 'GPL-3.0-only'
 
+from . utils import (
+        main, check_opt, export_results
+        )

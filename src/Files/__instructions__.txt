@@ -1,4 +1,0 @@
-1) Working folder /home/haris/whatever
-2) XMOF path: /home/haris/whatever/XMOF
-
-python3 -m XMOF [function] [folder]

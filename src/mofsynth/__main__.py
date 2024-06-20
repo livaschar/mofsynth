@@ -14,29 +14,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# python - m MOFSynth [function] [directory]
-
-import sys
-import os
-
-# Add the directory containing your package to the sys.path
-package_directory = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(package_directory)
-
-from __cli__ import _return_cli_parser, _transaction_summary
-from __utils__ import run
-
+from . cli import _transaction_summary, _return_cli_parser
+from . utils import main
 
 if __name__ == '__main__':
 
     args = _return_cli_parser().parse_args()
-    
     _transaction_summary(args)
 
-    inp = input('\nIs this ok [y/n]: ')
+    inp = input('\nIs this ok[y/N]: ')
     print('\n')
 
-    if inp.lower() == 'y':
-        run(args.directory)
+    if inp == 'y':
+        main(
+            args.directory,
+            args.function,
+            args.supercell_limit
+            )
     else:
-        print('Operation aborted.\n')
+        print('Operation aborted.')
