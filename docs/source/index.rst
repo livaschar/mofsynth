@@ -1,3 +1,8 @@
+.. image:: images/mofsynth_logo_cropped.svg
+   :width: 600
+   :align: center
+
+.. _introduction:
 Introduction
 ============
 
