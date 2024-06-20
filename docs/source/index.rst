@@ -2,6 +2,10 @@
    :width: 600
    :align: center
 
+.. image:: https://readthedocs.org/projects/mofsynth/badge/?version=latest
+    :target: https://mofsynth.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 .. _introduction:
 Introduction
 ============
