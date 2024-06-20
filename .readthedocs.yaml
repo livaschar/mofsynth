@@ -22,6 +22,14 @@ python:
    # Install our python package before building the docs
    - method: pip
      path: .
+
+
+commands:
+  pre_build:
+    - apt-get update
+    - apt-get install -y openbabel
+    - export CPLUS_INCLUDE_PATH=/usr/include/openbabel3
+    - export LIBRARY_PATH=/usr/lib
      
 # Optionally build your docs in additional formats such as PDF and ePub
 # formats:
