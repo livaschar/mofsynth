@@ -26,7 +26,7 @@ from . modules.other import (copy, settings_from_file,
 
 def main(directory, function, supercell_limit):
     r"""
-    Runs the specified function based on the provided parameters.
+    Acts as a dispatcher, directing the program to execute the specified function.
 
     Parameters
     ----------
@@ -34,19 +34,18 @@ def main(directory, function, supercell_limit):
         The path to the directory containing CIF files.
     function : str
         Name of the function to run. Supported values: 'main_run', 'check_opt', 'export_results'.
+    supercell_limit: int
+        The maximum length for each edge of the unit cell in Angstroms.
 
     Raises
     ------
     ValueError
         If an unsupported function name is provided.
 
-    Notes
-    -----
-    The 'main' function acts as a dispatcher, executing the corresponding functionality
-    based on the specified function name.
 
     Supported Functions:
-    - 'main_run': Executes the main_run function with the given directory.
+    - 'main_run': Executes the main_run function reading files from the given directory
+    and the supercell limit
     - 'check_opt': Executes the check_opt function that checks
     which optimization runs are converged.
     - 'export_results': Executes the export_results function and

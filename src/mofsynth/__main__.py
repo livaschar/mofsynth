@@ -31,8 +31,5 @@ if __name__ == '__main__':
             args.function,
             args.supercell_limit
             )
-            # args.c, args.e, args.s,
-            # args.cubic_box, args.length,
-            # args.o)
     else:
         print('Operation aborted.')

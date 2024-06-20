@@ -20,7 +20,7 @@ def _return_cli_parser():
 
     parser.add_argument('supercell_limit', nargs='?', default=None, 
                         help='''\
-        The maximum side length for each edge of the unit cell in Angstroms.
+        The maximum length for each edge of the unit cell in Angstroms.
         This limit is used to determine whether a supercell should be created based on the dimensions of the original unit cell.
         If not provided, the supercell creation will not be constrained by a specific limit.''')
     
@@ -35,12 +35,6 @@ def _transaction_summary(args):
 
     
     print('\nTransaction Summary')
-    # print(
-    #     f'{"# CIFs":<{gap}}', f'{"Grid size":<{gap}}',
-    #     f'{"Cutoff":<{gap}}', f'{"Epsilon":<{gap}}',
-    #     f'{"Sigma":<{gap}}', f'{"Cubic-box":>{gap}}',
-    #     sep=''
-    #     )
     print(col_size*"=")
     print('\nReading from directory:')
     print(f'  \033[1;31m{args.directory}\033[m')
