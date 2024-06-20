@@ -1,3 +1,6 @@
+.. Moxel documentation master file, created by
+   sphinx-quickstart on Thu Jun 20 11:20:11 2024.
+
 .. image:: images/synth_logo_cropped.png
    :width: 600
    :align: center
@@ -66,3 +69,10 @@ MOFsynth is released under the `GNU General Public License v3.0 only <https://sp
    :caption: Contents:
    installation
    tutorial
+
+Indices and tables
+------------------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
