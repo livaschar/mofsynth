@@ -7,33 +7,40 @@ As stated in :ref:`advantages`, all you need is a ``.cif`` file!
 
 If you don't have one |:point_right:| :download:`example.cif<down/example.cif>`.
 
-Create a folder to run the tutorial:
+First, create a directory for the tutorial:
 
-```sh
-mkdir <mofsynth_tutorial>
-cd <mofsynth_tutorial>
-```
-Create the folder containing all the cifs:
+    .. code-block::
 
-```sh
-mkdir <cifs_folder>
-Then make sure that TURBOMOLE is installed on your system.
-```
+        $ cd mofsynth_tutorial
+        $ mkdir mofsynth_tutorial
 
-In the input_data folder, there must be two files present:
+Next, create a directory to store the CIF files:
 
-The settings.txt
-The .sh script that runs the calculations using TURBOMOLE on your system
-Run the main function:
+    .. code-block::
 
-```sh
-python -m mofsynth main_run cifs 10
-```
+        $ mkdir cifs_folder
+        $ cd mofsynth_tutorial
 
-After the calculations have finished running, run:
+Important: make sure that TURBOMOLE is installed on your system.
 
-```sh
-python -m mofsynth export_results
-```
 
-A .xlsx file with the results will be created in the mofsynth_tutorial/Synth_folder.
+Ensure that TURBOMOLE is installed on your system.
+
+In the input_data folder, ensure the presence of the following files:
+1. settings.txt
+2. A .sh script that runs the calculations using TURBOMOLE on your system
+
+To run the main function, use the following command:
+
+    .. code-block::
+
+        $ python -m mofsynth main_run cifs_folder 10
+
+
+After the calculations have completed, run:
+
+    .. code-block::
+
+        $ python -m mofsynth export_results
+
+An .xlsx file containing the results will be created in the mofsynth_tutorial/Synth_folder.
