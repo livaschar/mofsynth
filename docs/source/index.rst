@@ -71,4 +71,5 @@ Contents
    Home <self>
    installation
    tutorial
+   mofid_help
 
