@@ -62,8 +62,11 @@ class Linkers:
     
     run_str_sp =  "bash -l -c 'module load turbomole/7.02; x2t linker.xyz > coord; uff; t2x -c > final.xyz'"
     
-    job_sh_path = os.path.join('/'.join(__file__.split('/')[:-2]),'input_data')
-    settings_path = os.path.join('/'.join(__file__.split('/')[:-2]),'input_data/settings.txt')
+    # job_sh_path = os.path.join('/'.join(__file__.split('/')[:-2]),'input_data')
+    # settings_path = os.path.join('/'.join(__file__.split('/')[:-2]),'input_data/settings.txt')
+    settings_path = os.path.join(os.getcwd(),'input_data/settings.txt')
+    job_sh_path = os.path.join(os.getcwd(),'input_data')
+    
     
     run_str = ''
     opt_cycles = ''
