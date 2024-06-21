@@ -20,7 +20,6 @@ Next, create a directory to store the CIF files:
     .. code-block:: console
 
         $ mkdir cifs_folder
-        $ cd mofsynth_tutorial
 
 Important: make sure that TURBOMOLE is installed on your system.
 
@@ -65,4 +64,4 @@ After the calculations have completed, run:
 
         $ python -m mofsynth export_results cifs_folder
 
-An .xlsx file containing the results will be created in the mofsynth_tutorial/Synth_folder.
+Hurray! An **.xlsx file** containing the results will be created in the *mofsynth_tutorial/Synth_folder*
