@@ -25,11 +25,10 @@ It is recommended to install MOFSynth inside a virtual environment.
 
 .. _documentation:
 
-|:books:| mofid module installation help
+|:books:| Install mofid
 ---------------------------
 
 .. toctree::
    :maxdepth: 1
-   :caption: Submodules:
 
    mofid_help
