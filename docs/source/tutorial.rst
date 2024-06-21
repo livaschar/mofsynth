@@ -31,6 +31,8 @@ that runs the calculations using TURBOMOLE on your system
 
         $ mkdir input_data
 
+The settings.txt file should have the following format
+
 .. code-block:: text
 
     # Command to run the optimization program
