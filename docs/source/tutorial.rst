@@ -32,7 +32,8 @@ that runs the calculations using TURBOMOLE on your system
         $ mkdir input_data
 
 The final structure should look like this
-     .. code-block:: text
+
+    .. code-block:: text
         cifs_folder/
         └── example.cif
         input_data/
