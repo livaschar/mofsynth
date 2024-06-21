@@ -36,6 +36,7 @@ The final structure should look like this
     .. code-block:: text
         cifs_folder/
         └── example.cif
+    .. code-block:: text        
         input_data/
         └── settings.txt
         └── <your_job_script>.sh
