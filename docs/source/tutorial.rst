@@ -31,6 +31,15 @@ that runs the calculations using TURBOMOLE on your system
 
         $ mkdir input_data
 
+.. code-block:: text
+
+    # Command to run the optimization program
+    sbatch <your_job>.sh
+    # Filename found in 'input_data' directory [optional]
+    <your_job>.sh
+    # Number of optimization cycles
+    10000
+
 The final structure should look like this
 
 .. code-block:: text
