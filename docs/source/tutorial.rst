@@ -52,8 +52,6 @@ The final structure should look like this
    └── settings.txt
    └── <your_job>.sh
 
-
-
 You are ready to run using the following command:
 
     .. code-block:: console
@@ -65,6 +63,6 @@ After the calculations have completed, run:
 
     .. code-block:: console
 
-        $ python -m mofsynth export_results
+        $ python -m mofsynth export_results cifs_folder
 
 An .xlsx file containing the results will be created in the mofsynth_tutorial/Synth_folder.
