@@ -5,7 +5,8 @@
 
 As stated in :ref:`advantages`, all you need is a ``.cif`` file!
 
-If you don't have one |:point_right:| :download:`example.cif<down/example.cif>`.
+If you don't have one |:point_right:| :download:`example.cif<down/example.cif>`
+or try MOFSynth in a mini database |:point_right:| :download:`example_database.zip<down/example_database.zip>`
 
 First, create a directory for the tutorial:
 
@@ -23,14 +24,19 @@ Next, create a directory to store the CIF files:
 
 Important: make sure that TURBOMOLE is installed on your system.
 
+Next, create an input_data folder to store the settings.txt file and the .sh file
+that runs the calculations using TURBOMOLE on your system
 
-Ensure that TURBOMOLE is installed on your system.
+    .. code-block:: console
 
-In the input_data folder, ensure the presence of the following files:
-1. settings.txt
-2. A .sh script that runs the calculations using TURBOMOLE on your system
+        $ mkdir input_data
+    .. code-block:: text
 
-To run the main function, use the following command:
+       input_data/
+       └── settings.txt
+       └── <your_job_script>.sh
+
+You are ready to run using the following command:
 
     .. code-block:: console
 
