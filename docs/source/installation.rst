@@ -28,13 +28,8 @@ It is recommended to install MOFSynth inside a virtual environment.
 |:books:| mofid module installation help
 ---------------------------
 
-.. automodule:: mofsynth
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Submodules:
 
    mofid_help
