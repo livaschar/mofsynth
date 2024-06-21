@@ -37,6 +37,7 @@ The final structure should look like this
    
    input_data/
    └── settings.txt
+   └── <your_job>.sh
 
 
 You are ready to run using the following command:
