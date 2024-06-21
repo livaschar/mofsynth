@@ -17,7 +17,7 @@ It is recommended to install MOFSynth inside a virtual environment.
 
         $ source <venvir_name>/bin/activate
 
-3. Install ΜΟΧελ:
+3. Install MOFSynth:
 
     .. code-block::
 
