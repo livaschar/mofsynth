@@ -1,29 +1,6 @@
 .. MOFsynth documentation master file, created by
    sphinx-quickstart on Thu Jun 20 11:20:11 2024.
 
-.. raw:: html
-
-   <div style="text-align: center;">
-
-.. image:: images/synth_logo_cropped.png
-   :width: 600
-
-.. raw:: html
-
-   </div>
-
-.. raw:: html
-
-   <div style="text-align: center;">
-
-.. image:: https://readthedocs.org/projects/mofsynth/badge/?version=latest
-    :target: https://mofsynth.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
-.. raw:: html
-
-   </div>
-
 .. image:: images/synth_logo_cropped.png
    :width: 600
    :align: center
