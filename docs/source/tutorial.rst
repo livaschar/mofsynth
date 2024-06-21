@@ -34,6 +34,7 @@ that runs the calculations using TURBOMOLE on your system
 The final structure should look like this
 
 .. code-block:: text
+   
    input_data/
    └── settings.txt
 
