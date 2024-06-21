@@ -8,6 +8,7 @@
 .. image:: https://readthedocs.org/projects/mofsynth/badge/?version=latest
     :target: https://mofsynth.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
+    :align: center
 
 .. _introduction:
 🏠 Introduction
