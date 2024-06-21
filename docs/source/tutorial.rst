@@ -26,7 +26,7 @@ Important: make sure that TURBOMOLE is installed on your system.
 
 Next, create an input_data folder to store the settings.txt file and the .sh file
 that runs the calculations using TURBOMOLE on your system
-
+    
     .. code-block:: console
 
         $ mkdir input_data
