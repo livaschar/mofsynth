@@ -7,6 +7,7 @@
 <h4 align="center">
 
 [![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=yellow&label=Python&labelColor=black&color=blue)](https://www.python.org/downloads/)
+[![Read the Docs](https://img.shields.io/badge/stable-green?logo=readthedocs&logoColor=blue&label=Read%20the%20Docs&labelColor=black)](https://mofsynth.readthedocs.io)
 [![Documentation Status](https://readthedocs.org/projects/mofsynth/badge/?version=latest)](https://mofsynth.readthedocs.io/en/latest/?badge=latest)
 [![Licensed under GPL-3.0-only](https://img.shields.io/badge/GPL--3.0--only-gold?label=License&labelColor=black)](https://spdx.org/licenses/GPL-3.0-only.html)
 
