@@ -11,8 +11,8 @@ First, create a directory for the tutorial:
 
     .. code-block:: console
 
-        $ cd mofsynth_tutorial
         $ mkdir mofsynth_tutorial
+        $ cd mofsynth_tutorial
 
 Next, create a directory to store the CIF files:
 
