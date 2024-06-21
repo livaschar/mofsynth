@@ -1,8 +1,5 @@
-Help to Install MOFID Module
+Help to Install mofid Module
 ============================
-
-Installation Instructions
-=========================
 
 Run the following commands in a Debian system:
 
