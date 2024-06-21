@@ -42,6 +42,8 @@ def _transaction_summary(args):
     print(f'  \033[1;31m{num_cifs}\033[m')
     print('\nExecuting the Function')
     print(f'  \033[1;31m{args.function}\033[m')
-    print('\nSupercell creation limit set to')
-    print(f'  \033[1;31m{args.supercell_limit}\033[m')
+    if args.supercell_limit is not None:
+        print('\nSupercell creation limit set to:')
+        print(f'  \033[1;31m{args.supercell_limit}\033[m')
+
     print(col_size*"=")
