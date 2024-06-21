@@ -9,14 +9,14 @@ If you don't have one |:point_right:| :download:`example.cif<down/example.cif>`.
 
 First, create a directory for the tutorial:
 
-    .. code-block::
+    .. code-block:: console
 
         $ cd mofsynth_tutorial
         $ mkdir mofsynth_tutorial
 
 Next, create a directory to store the CIF files:
 
-    .. code-block::
+    .. code-block:: console
 
         $ mkdir cifs_folder
         $ cd mofsynth_tutorial
@@ -32,14 +32,14 @@ In the input_data folder, ensure the presence of the following files:
 
 To run the main function, use the following command:
 
-    .. code-block::
+    .. code-block:: console
 
         $ python -m mofsynth main_run cifs_folder 10
 
 
 After the calculations have completed, run:
 
-    .. code-block::
+    .. code-block:: console
 
         $ python -m mofsynth export_results
 
