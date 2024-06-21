@@ -1,4 +1,4 @@
-Help to Install mofid Module
+Help to install mofid module
 ============================
 
 Run the following commands in a Debian system:
