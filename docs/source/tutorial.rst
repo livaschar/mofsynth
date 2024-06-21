@@ -37,7 +37,7 @@ The final structure should look like this
    
    cifs_folder/
    └── example.cif
-    input_data/
+   input_data/
    └── settings.txt
    └── <your_job>.sh
 
