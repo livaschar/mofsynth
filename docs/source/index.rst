@@ -10,7 +10,7 @@
     :alt: Documentation Status
 
 .. _introduction:
-Introduction
+🏠 Introduction
 ============
 
 MOFSynth is a Python package to ease and accelerate through **parallelization**, the
