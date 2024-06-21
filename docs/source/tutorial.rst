@@ -36,7 +36,8 @@ The final structure should look like this
 .. code-block:: text
    input_data/
    └── settings.txt
-   └── <your_job>.sh
+   cifs_folder/
+   └── example.cif
 
 You are ready to run using the following command:
 
