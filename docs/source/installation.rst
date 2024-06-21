@@ -22,3 +22,19 @@ It is recommended to install MOFSynth inside a virtual environment.
     .. code-block::
 
         (<venvir_name>) $ pip install mofsynth
+
+.. _documentation:
+
+|:books:| mofid module installation help
+---------------------------
+
+.. automodule:: mofsynth
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Submodules:
+
+   mofid_help
