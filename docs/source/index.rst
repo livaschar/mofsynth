@@ -64,13 +64,11 @@ License
 -------
 MOFsynth is released under the `GNU General Public License v3.0 only <https://spdx.org/licenses/GPL-3.0-only.html>`_.
 
-Contents:
+Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Table of Contents:
    Home <self>
    installation
-   mofid_help
    tutorial
+   mofid_help
