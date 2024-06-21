@@ -16,6 +16,7 @@ Cloning the Repository
 Follow these steps to clone the repository:
 
 .. code-block:: shell
+    
     mkdir mofid_module
     cd mofid_module
     git clone -b v1.1.0 https://github.com/snurr-group/mofid.git
@@ -27,6 +28,7 @@ Editing the Source Code
 Make the following modification to the source code:
 
 .. code-block:: shell
+
     cd mofid
     vim openbabel/include/openbabel/obutil.h
         Write *#include <ctime>* in line 47
