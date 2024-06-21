@@ -34,10 +34,10 @@ that runs the calculations using TURBOMOLE on your system
 The final structure should look like this
      .. code-block:: text
         cifs_folder/
-            └── example.cif
+        └── example.cif
         input_data/
-            └── settings.txt
-            └── <your_job_script>.sh
+        └── settings.txt
+        └── <your_job_script>.sh
 
 You are ready to run using the following command:
 
