@@ -28,8 +28,8 @@ Make the following modification to the source code:
 
     cd mofid
     vim openbabel/include/openbabel/obutil.h
-        Write *#include <ctime>* in line 47
-        *Make sure to save the file before exit*
+
+Write **#include <ctime>** in line 47. Make sure to save the file before exit
 
 Finalizing the Installation
 ---------------------------
