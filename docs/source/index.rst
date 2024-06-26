@@ -1,7 +1,7 @@
 .. MOFsynth documentation master file, created by
    sphinx-quickstart on Thu Jun 20 11:20:11 2024.
 
-.. image:: images/synth_logo_cropped.png
+.. image:: images/final_grey-removebg-preview.png
    :width: 600
    :align: center
 
