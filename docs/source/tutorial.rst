@@ -21,7 +21,11 @@ Next, create a directory to store the CIF files:
 
         $ mkdir cifs_folder
 
-Important: make sure that TURBOMOLE is installed on your system.
+Important: make sure that turbomole/6.5 is installed on your system by running:
+    
+    .. code-block:: console
+
+        $ module avail
 
 Next, create an input_data folder to store the settings.txt file and the .sh file
 that runs the calculations using TURBOMOLE on your system
