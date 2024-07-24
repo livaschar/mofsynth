@@ -57,9 +57,6 @@ Check the [tutorial]().
 ## :warning: Problems?
 Don't hesitate to communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
 
-## 📇 TODO
-
-
 ## 📑 License
 MOFSynth is released under the [GNU General Public License v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html).
 
