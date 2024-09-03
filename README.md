@@ -52,7 +52,7 @@ To run MOFSynth, the following modules and tools must be present in your system:
 Coming Soon
 
 ## 📖 Usage example
-Check the [tutorial]().
+Check the [tutorial](https://mofsynth.readthedocs.io/en/latest/tutorial.html).
 
 ## :warning: Problems?
 Don't hesitate to communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
