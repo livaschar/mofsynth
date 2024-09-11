@@ -49,7 +49,7 @@ To run MOFSynth, the following modules and tools must be present in your system:
    
 
 ## 💻 Browser-Based MOFid
-Coming Soon
+Web version of MOFSynth at [link](https://mofsynth.website)
 
 ## 📖 Usage example
 Check the [tutorial](https://mofsynth.readthedocs.io/en/latest/tutorial.html).
