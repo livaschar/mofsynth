@@ -14,15 +14,15 @@ def _return_cli_parser():
 
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
         
-    parser.add_argument('function', help='The function to be called. Choices: main, check_opt, export_results')
+    parser.add_argument('function', help='The function to be called. Choices: run, check_opt, export_results')
 
-    parser.add_argument('directory', help='The path to the directory containing all CIF files that the user wants to process.')
+    parser.add_argument('directory', help='The path to the directory containing all CIF files.')
 
     parser.add_argument('supercell_limit', nargs='?', default=None, 
                         help='''\
         The maximum length for each edge of the unit cell in Angstroms.
         This limit is used to determine whether a supercell should be created based on the dimensions of the original unit cell.
-        If not provided, the supercell creation will not be constrained by a specific limit.''')
+        If not provided, the supercell creation will not be constrained by a specific limit. A limit helps with speed and convergence''')
     
     return parser
 

@@ -25,7 +25,7 @@ if __name__ == '__main__':
     inp = input('\nIs this ok[y/N]: ')
     print('\n')
 
-    if inp == 'y':
+    if inp.upper() == 'Y':
         main(
             args.directory,
             args.function,

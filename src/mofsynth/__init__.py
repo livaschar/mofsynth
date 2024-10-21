@@ -23,10 +23,10 @@ emphasis on reticular chemistry.
 """
 
 __author__ = 'Charalampos G. Livas'
-__version__ = '0.2.2'
+__version__ = '1.0.0'
 __copyright__ = "Copyright (c) 2023 Charalampos G. Livas"
 __license__ = 'GPL-3.0-only'
 
 from . utils import (
-        main, check_opt, export_results
+        main, run, check_opt, export_results
         )

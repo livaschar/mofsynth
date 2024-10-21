@@ -4,33 +4,7 @@ import os
 import openpyxl
 import numpy as np
 
-def load_objects():
-    
-    id_smiles_dict = {}
-
-    with open('cifs.pkl', 'rb') as file:
-        cifs = pickle.load(file)
-    with open('linkers.pkl', 'rb') as file:
-        linkers = pickle.load(file)
-    
-    with open('smiles_id_dictionary.txt', 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            id_smiles_dict[line.split()[-1]] = line.split()[0]
-    
-    return cifs, linkers, id_smiles_dict
-
-
-def copy(path1, path2, file_1, file_2 = None):
-    
-    if file_2 is None:
-        file_2 = file_1
-    
-    shutil.copy(os.path.join(path1, file_1), os.path.join(path2, file_2))
-
-    return
-
-def settings_from_file(filepath):
+def config_from_file(filepath):
         
     with open(filepath) as f:
         lines = f.readlines()
@@ -44,23 +18,30 @@ def settings_from_file(filepath):
 
     return run_str, job_sh, cycles
 
-def user_settings():
-    run_str = input("\nProvide the string with which the optimization program runs: ")
+def copy(path1, path2, file_1, file_2 = None):
+    
+    if file_2 is None:
+        file_2 = file_1
+    
+    shutil.copy(os.path.join(path1, file_1), os.path.join(path2, file_2))
 
-    question = input("\nIs there a file in MOFSynth/Files folder that is necessary to run your optimization programm? [y/n]: ")
-    if question == 'y':
-        job_sh = input("\nSpecify the file name: ")
-    else:
-        job_sh = None
+    return
+
+
+def load_objects(root_path):
     
-    cycles = input("\nPlease specify the number of optimization cycles (default = 1000): ")
-    try:
-        cycles = int(cycles)
-    except:
-        print("Not a valid value provided. Default value will be used")
-        cycles = '1000'
+    id_smiles_dict = {}
+    with open(root_path / 'cifs.pkl', 'rb') as file:
+        cifs = pickle.load(file)
+    with open(root_path / 'linkers.pkl', 'rb') as file:
+        linkers = pickle.load(file)
     
-    return run_str, job_sh, cycles
+    with open(root_path / 'smiles_id_dictionary.txt', 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            id_smiles_dict[line.split()[-1]] = line.split()[0]
+    
+    return cifs, linkers, id_smiles_dict
 
 def write_txt_results(results_list, results_txt_path):
 
@@ -88,38 +69,3 @@ def write_xlsx_results(results_list, results_xlsx_path):
 
     # Save the workbook to the specified Excel file
     workbook.save(results_xlsx_path)
-
-def delete_files_except(folder_path, exceptions):
-    """
-    Delete all files in the folder except those in the exceptions list.
-    
-    Parameters:
-    - folder_path (str): The path to the folder.
-    - exceptions (list): List of filenames to be excluded from deletion.
-    """
-    try:
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            if os.path.isfile(file_path) and filename not in exceptions:
-                os.remove(file_path)
-                print(f"Deleted: {filename}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-
-def move_and_delete_contents(source_path, destination_path):
-    # Create the destination directory if it doesn't exist
-    if not os.path.exists(destination_path):
-        os.makedirs(destination_path)
-
-    # Get a list of all files in the source directory
-    files = [f for f in os.listdir(source_path) if os.path.isfile(os.path.join(source_path, f))]
-
-    # Move each file to the destination directory
-    for file in files:
-        source_file = os.path.join(source_path, file)
-        destination_file = os.path.join(destination_path, file)
-        shutil.move(source_file, destination_file)
-
-    # Now, delete the original contents of folder1
-    shutil.rmtree(source_path)
