@@ -79,9 +79,11 @@ def run(directory, supercell_limit):
     """
 
     # Create a Path object from the directory string
-    user_dir = Path(directory)
+    user_dir_temp = Path(directory)
+    user_dir = user_dir_temp.resolve()
     # Get the parent directory (root path)
-    root_path = user_dir.parent
+    root_path_temp = user_dir.parent
+    root_path = root_path_temp.resolve()
     # Define the new directory path (root_path/Synth_folder)
     synth_folder_path = root_path / "Synth_folder"
     # Create the directory if it doesn't exist
