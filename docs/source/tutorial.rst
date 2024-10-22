@@ -27,20 +27,20 @@ Important: make sure that turbomole/6.5 is installed on your system by running:
 
         $ module avail
 
-Next, create an input_data folder to store the settings.txt file and the .sh file
+Next, create an input_data folder to store the config.txt file and the .sh file
 that runs the calculations using TURBOMOLE on your system
     
     .. code-block:: console
 
-        $ mkdir input_data
+        $ mkdir config_dir
 
-The settings.txt file should have the following format
+The config.txt file should have the following format
 
 .. code-block:: text
 
     # Command to run the optimization program
     sbatch <your_job>.sh
-    # Filename found in 'input_data' directory [optional]
+    # Filename found in 'config_dir' directory [optional]
     <your_job>.sh
     # Number of optimization cycles
     10000
@@ -51,15 +51,15 @@ The final structure should look like this
    
    cifs_folder/
    └── example.cif
-   input_data/
-   └── settings.txt
+   config_dir/
+   └── config.txt
    └── <your_job>.sh
 
 You are ready to run using the following command:
 
     .. code-block:: console
 
-        $ python -m mofsynth main_run cifs_folder 10
+        $ python -m mofsynth run cifs_folder 10
 
 
 After the calculations have completed, run:
@@ -68,4 +68,4 @@ After the calculations have completed, run:
 
         $ python -m mofsynth export_results cifs_folder
 
-Hurray! An **.xlsx file** containing the results will be created in the *mofsynth_tutorial/Synth_folder*
+Hurray! An **.xlsx file** containing the results will be created in the *mofsynth_tutorial/*
