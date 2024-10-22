@@ -23,7 +23,7 @@ emphasis on reticular chemistry.
 """
 
 __author__ = 'Charalampos G. Livas'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 __copyright__ = "Copyright (c) 2023 Charalampos G. Livas"
 __license__ = 'GPL-3.0-only'
 
