@@ -29,7 +29,19 @@ This allows researchers to focus more on innovative synthesis and experimental v
 rather than on preparatory tasks.
 
 ## 📰 Citing MOFSynth
-Paper under review
+  @article{doi:10.1021/acs.jcim.4c01298,
+  author = {Livas, Charalampos G. and Trikalitis, Pantelis N. and Froudakis, George E.},
+  title = {MOFSynth: A Computational Tool toward Synthetic Likelihood Predictions of MOFs},
+  journal = {Journal of Chemical Information and Modeling},
+  volume = {64},
+  number = {21},
+  pages = {8193-8200},
+  year = {2024},
+  doi = {10.1021/acs.jcim.4c01298},
+  note ={PMID: 39481084},
+  URL = {https://doi.org/10.1021/acs.jcim.4c01298},
+  eprint = {https://doi.org/10.1021/acs.jcim.4c01298}
+  }
 
 ## ⚙️  Installation
 It is strongly recommended to **perform the installation inside a virtual environment**.
