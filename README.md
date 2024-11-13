@@ -63,8 +63,8 @@ To run MOFSynth, the following modules and tools must be present in your system:
    - Ensure turbomole/6.5 is properly installed and configured in your system. Refer to the [TURBOMOLE installation guide](https://www.turbomole.org/).
    
 
-## 💻 Browser-Based MOFid
-Web version of MOFSynth at [link](https://mofsynth.website)
+## 💻 Browser-Based MOFSynth
+Web version of the tool at [link](https://mofsynth.website)
 
 ## 📖 Usage example
 Check the [tutorial](https://mofsynth.readthedocs.io/en/latest/tutorial.html).
