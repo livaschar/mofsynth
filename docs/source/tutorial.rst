@@ -41,7 +41,7 @@ The config.yaml file should have the following format
     optimization:
       command: sbatch
       file: synth_job.sh
-      opt_cycles: 1000
+      cycles: 1000
 
 The final structure should look like this
 
