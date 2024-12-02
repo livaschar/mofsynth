@@ -1,5 +1,5 @@
 # This file is part of MOF-Synth.
-# Copyright (C) 2023 Charalampos G. Livas
+# Copyright (C) 2024 Charalampos G. Livas
 
 # MOF-Synth is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

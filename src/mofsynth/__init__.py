@@ -1,5 +1,5 @@
 # This file is part of MOF-Synth.
-# Copyright (C) 2023 Charalampos G. Livas
+# Copyright (C) 2024 Charalampos G. Livas
 
 # MOF-Synth is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ emphasis on reticular chemistry.
 """
 
 __author__ = 'Charalampos G. Livas'
-__version__ = '1.0.2'
-__copyright__ = "Copyright (c) 2023 Charalampos G. Livas"
+__version__ = '1.0.3'
+__copyright__ = "Copyright (c) 2024 Charalampos G. Livas"
 __license__ = 'GPL-3.0-only'
 
 from . utils import (
