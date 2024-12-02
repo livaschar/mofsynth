@@ -143,7 +143,7 @@ class Linkers:
         with open(self.opt_path / "control",'w') as f:
             f.writelines(lines)
         
-        job_sh_path = self.opt_path / 'job.sh'
+        job_sh_path = self.opt_path / Linkers.job_sh
         self.run_str = f'sbatch {job_sh_path}'
         try:
             p = subprocess.Popen(self.run_str, shell=True, cwd=self.opt_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

@@ -1,0 +1,4 @@
+optimization:
+  command: sbatch
+  file: job.sh
+  opt_cycles: 1000

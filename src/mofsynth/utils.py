@@ -92,7 +92,7 @@ def run(directory, supercell_limit):
     # If settings file exists, read settings from there else ask for user input
     Linkers.config_directory = root_path / "config_dir"
     if os.path.exists(Linkers.config_directory):
-        config_file_path = Linkers.config_directory / "config.txt"
+        config_file_path = Linkers.config_directory / "config.yaml"
         Linkers.run_str, Linkers.job_sh, Linkers.opt_cycles = config_from_file(config_file_path)
     else:
         print(f'\033[1;31m\n No configuration file found at {Linkers.config_directory}. Aborting session... \033[m')

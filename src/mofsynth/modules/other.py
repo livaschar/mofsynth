@@ -3,20 +3,36 @@ import pickle
 import os
 import openpyxl
 import numpy as np
+import yaml
 
 def config_from_file(filepath):
-        
-    with open(filepath) as f:
-        lines = f.readlines()
-    
-    run_str = ' '.join([i for i in lines[1].split()])
-    try:
-        job_sh = lines[3].split()[0]
-    except:
-        pass
-    cycles = lines[5].split()[0]
+    """Load and parse the YAML configuration file."""
+    with filepath.open('r') as f:
+        config = yaml.safe_load(f)
+
+    # Extract relevant fields with validation
+    run_str = config.get('optimization', {}).get('command')
+    job_sh = config.get('optimization', {}).get('file')
+    cycles = config.get('optimization', {}).get('opt_cycles')
+
+    if not run_str or not job_sh or not cycles:
+        return None, None, None
 
     return run_str, job_sh, cycles
+
+# def config_from_file(filepath):
+        
+#     with open(filepath) as f:
+#         lines = f.readlines()
+    
+#     run_str = ' '.join([i for i in lines[1].split()])
+#     try:
+#         job_sh = lines[3].split()[0]
+#     except:
+#         pass
+#     cycles = lines[5].split()[0]
+
+#     return run_str, job_sh, cycles
 
 def copy(path1, path2, file_1, file_2 = None):
     
