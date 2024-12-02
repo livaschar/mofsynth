@@ -139,7 +139,6 @@ def run(directory, supercell_limit):
         else:
             # Copy .cif and job.sh in the mof directory
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
-            print(Linkers.job_sh)
             copy(Linkers.config_directory, mof.sp_path, Linkers.job_sh)
 
             # Create supercell, do the fragmentation, extract one linker,
