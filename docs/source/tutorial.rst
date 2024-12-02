@@ -27,23 +27,21 @@ Important: make sure that turbomole/6.5 is installed on your system by running:
 
         $ module avail
 
-Next, create an input_data folder to store the config.txt file and the .sh file
+Next, create an input_data folder to store the config.yaml file and the .sh file
 that runs the calculations using TURBOMOLE on your system
     
     .. code-block:: console
 
         $ mkdir config_dir
 
-The config.txt file should have the following format
+The config.yaml file should have the following format
 
 .. code-block:: text
 
-    # Command to run the optimization program
-    sbatch <your_job>.sh
-    # Filename found in 'config_dir' directory [optional]
-    <your_job>.sh
-    # Number of optimization cycles
-    10000
+    optimization:
+      command: sbatch
+      file: synth_job.sh
+      opt_cycles: 1000
 
 The final structure should look like this
 
