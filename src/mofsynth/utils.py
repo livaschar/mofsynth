@@ -97,6 +97,8 @@ def run(directory, supercell_limit):
     else:
         print(f'\033[1;31m\n No configuration file found at {Linkers.config_directory}. Aborting session... \033[m')
         return False
+    if Linkers.run_str==None or Linkers.job_sh==None or Linkers.opt_cycles==None:
+        return False
     
     print(f'  \033[1;32m\nSTART OF SYNTHESIZABILITY EVALUATION\033[m')
 
@@ -137,6 +139,7 @@ def run(directory, supercell_limit):
         else:
             # Copy .cif and job.sh in the mof directory
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
+            print(Linkers.job_sh)
             copy(Linkers.config_directory, mof.sp_path, Linkers.job_sh)
 
             # Create supercell, do the fragmentation, extract one linker,

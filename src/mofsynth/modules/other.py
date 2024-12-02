@@ -13,7 +13,7 @@ def config_from_file(filepath):
     # Extract relevant fields with validation
     run_str = config.get('optimization', {}).get('command')
     job_sh = config.get('optimization', {}).get('file')
-    cycles = config.get('optimization', {}).get('opt_cycles')
+    cycles = config.get('optimization', {}).get('cycles')
 
     if not run_str or not job_sh or not cycles:
         return None, None, None
