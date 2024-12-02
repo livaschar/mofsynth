@@ -28,7 +28,11 @@ def _return_cli_parser():
 
 
 def _transaction_summary(args):
-    col_size, _ = os.get_terminal_size()
+    try:
+        col_size, _ = os.get_terminal_size()
+    except OSError:
+        # Fallback for environments without a terminal
+        col_size = 80  # Default column size
 
     gap = col_size // 6
     num_cifs = len([i for i in os.listdir(args.directory) if i.endswith('.cif')])
