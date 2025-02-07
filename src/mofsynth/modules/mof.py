@@ -457,11 +457,11 @@ class MOF:
         
             check = MOF.rmsd_p(sp_file, opt_file, self.rmsd_path)
     
-            if check == False:
-                if input('Error while calculating the -p RMSD instance. Continue? [y/n]: ') == 'y':
-                    pass
-                else:
-                    return 0
+            #if check == False:
+            #    if input('Error while calculating the -p RMSD instance. Continue? [y/n]: ') == 'y':
+            #        pass
+            #    else:
+            #        return 0
         
             try:
                 for sp in [sp_file, sp_mod_file]:
