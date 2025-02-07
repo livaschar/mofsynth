@@ -236,6 +236,7 @@ def export_results(directory):
     synth_folder_path = root_path / "Synth_folder"
     MOF.initialize(root_path, synth_folder_path)
     cifs, linkers, id_smiles_dict= load_objects(root_path)
+    
 
     converged, _ = Linkers.check_optimization_status(linkers)
 

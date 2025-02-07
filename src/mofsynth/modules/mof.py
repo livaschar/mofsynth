@@ -382,6 +382,8 @@ class MOF:
         results_list = []
         for mof in cifs:
             
+            print(f'\n - \033[1;34mMOF under study: {mof.name}\033[m -')
+
             linker = next((obj for obj in linkers if obj.smiles_code == mof.linker_smiles and obj.mof_name == mof.name), None)
             
             with open(mof.sp_path / "uffgradient", 'r') as f:
