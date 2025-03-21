@@ -61,7 +61,7 @@ Check the [tutorial](https://mofsynth.readthedocs.io/en/latest/tutorial.html).
 
 ## :warning: Problems?
 
-You can start by [opening an issue](https://github.com/livaschar/mofsynth/issues) or communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
+You can start by [opening an issue](https://github.com/livaschar/mofsynth/issues) or communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr).
 
 ## 📰 Citing MOFSynth
 
@@ -82,7 +82,8 @@ Please consider citing [this publication](https://pubs.acs.org/doi/full/10.1021/
   doi = {10.1021/acs.jcim.4c01298},
   note ={PMID: 39481084},
   URL = {https://doi.org/10.1021/acs.jcim.4c01298},
-  eprint = {https://doi.org/10.1021/acs.jcim.4c01298}}
+  eprint = {https://doi.org/10.1021/acs.jcim.4c01298}
+  }
 ```
 
 </details>

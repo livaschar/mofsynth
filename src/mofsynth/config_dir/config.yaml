@@ -1,4 +1,4 @@
 optimization:
   command: sbatch
-  file: job.sh
+  file: synth_job.sh
   cycles: 1000
