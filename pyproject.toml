@@ -9,12 +9,9 @@ where = ["src"]
 mofsynth = ["*"]
 "mofsynth.input_data" = ["*"]
 
-[tool.setuptools.dynamic]
-version = {attr = "mofsynth.__version__"}
-
 [project]
 name = "mofsynth"
-dynamic = ["version"]
+dynamic = "2.0.0"
 
 authors = [
   {name="Charalampos G. Livas", email="livas.charalampos@gmail.com"},
