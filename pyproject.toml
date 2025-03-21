@@ -1,18 +1,17 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-mofsynth = ["*"]
-"mofsynth.input_data" = ["*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "mofsynth.__version__"}
 
 [project]
 name = "mofsynth"
-version = "2.0.0"
-
+dynamic = ["version"]
 authors = [
   {name="Charalampos G. Livas", email="livas.charalampos@gmail.com"},
 ]
@@ -28,16 +27,20 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
 ]
 
+
 dependencies = [
-	"matplotlib>=3.7.1",
-	"numpy>=1.24.1",
-	"pymatgen>=2023.5.10",
- 	"openpyxl>=3.1.2",
-  	"rmsd>=1.5.1"
+    "matplotlib>=3.7.1",
+    "numpy>=1.24.1",
+    "pymatgen>=2023.5.10",
+    "openpyxl>=3.1.2",
+    "rmsd>=1.5.1"
 ]
+
 
 [project.urls]
 Homepage = "https://github.com/livaschar/mofsynth"
+Issues = "https://github.com/livaschar/mofsynth/issues"
+Documentation = "https://mofsynth.readthedocs.io/en/latest/"
 
 [project.scripts]
 mofsynth = "mofsynth.__main__:main"
