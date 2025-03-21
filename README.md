@@ -8,10 +8,9 @@
 
 <h4 align="center">
 
-[![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=yellow&label=Python&labelColor=black&color=blue)](https://www.python.org/downloads/)
-[![Read the Docs](https://img.shields.io/badge/stable-green?logo=readthedocs&logoColor=blue&label=Read%20the%20Docs&labelColor=black)](https://mofsynth.readthedocs.io)
-[![Documentation Status](https://readthedocs.org/projects/mofsynth/badge/?version=latest)](https://mofsynth.readthedocs.io/en/latest/?badge=latest)
-[![PyPI](https://img.shields.io/badge/PyPI-v%202.0.0-blue?style=flat&labelColor=black)](https://pypi.org/project/mofsynth/)
+[![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-g?logo=python&logoColor=blue&label=Python&labelColor=black)](https://www.python.org/downloads/)
+[![Read the Docs](https://img.shields.io/badge/latest-b?logo=readthedocs&logoColor=blue&label=Read%20the%20Docs&labelColor=black)](https://mofsynth.readthedocs.io)
+[![PyPI](https://img.shields.io/badge/PyPI%20-%20v%202.0.0%20-b?style=flat&logo=pypi&logoColor=blue&logoSize=auto&label=PyPI&labelColor=black)](https://pypi.org/project/mofsynth/)
 [![Licensed under GPL-3.0-only](https://img.shields.io/badge/GPL--3.0--only-gold?label=License&labelColor=black)](https://spdx.org/licenses/GPL-3.0-only.html)  
 
 [![Online App](https://img.shields.io/badge/🔥%20MOFSYNTH%20Online-Try%20Now!-red?style=for-the-badge&labelColor=black)](https://mofsynth.website)  
