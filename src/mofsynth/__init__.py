@@ -27,6 +27,3 @@ __version__ = '2.0.0'
 __copyright__ = "Copyright (c) 2025 Charalampos G. Livas"
 __license__ = 'GPL-3.0-only'
 
-# from mofsynth.__utils__ import (
-#         main, run, check_opt, export_results
-#         )
