@@ -57,13 +57,13 @@ You are ready to run using the following command:
 
     .. code-block:: console
 
-        $ python -m mofsynth run cifs_folder 10
+        $ mofsynth run path/to/cifs_folder 10
 
 
 After the calculations have completed, run:
 
     .. code-block:: console
 
-        $ python -m mofsynth export_results cifs_folder
+        $ mofsynth export_results path/to/cifs_folder
 
 Hurray! An **.xlsx file** containing the results will be created in the *mofsynth_tutorial/*

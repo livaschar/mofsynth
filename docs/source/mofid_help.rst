@@ -40,6 +40,5 @@ Complete the installation with these commands:
 
     make init
     python3 set_paths.py
-    # Activate your preferred virtual environment
-    source /path/to/my_venv/bin/activate
+    source /path/to/venvir_name/bin/activate
     pip install .

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-import os
 import subprocess
-from . other import copy
+from mofsynth.modules.other import copy
 
 
 @dataclass

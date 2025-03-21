@@ -3,8 +3,8 @@ import subprocess
 from mofid.run_mofid import cif2mofid
 from pymatgen.io.cif import CifWriter
 from pymatgen.core.structure import IStructure
-from . other import copy
 import numpy as np
+from mofsynth.modules.other import copy
 
 
 @dataclass
@@ -287,7 +287,7 @@ class MOF:
         organize data, and return the resulting dictionaries.
         """
 
-        from . linkers import Linkers
+        from mofsynth.modules.linkers import Linkers
 
         # Iterate through mof instances
         unique_id = 0

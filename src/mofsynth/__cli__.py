@@ -1,16 +1,16 @@
 import os
 import argparse
-from . __init__ import __version__ as version
+from mofsynth import __version__ as version
 
 
 def _return_cli_parser():
     
     parser = argparse.ArgumentParser(
-                                    prog='mofsynth',
-                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                    description='Access synthesizability from a directory containig ``.cif`` files.',
-                                    epilog='''A command line utility based on the MOFSynth package.'''
-                                    )
+        prog='mofsynth',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description='Access synthesizability from a directory containig ``.cif`` files.',
+        epilog='''A command line utility based on the MOFSynth package.'''
+        )
 
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
         
@@ -47,7 +47,7 @@ def _transaction_summary(args):
     print('\nExecuting the Function')
     print(f'  \033[1;31m{args.function}\033[m')
     if args.supercell_limit is not None:
-        print('\nSupercell creation limit set to:')
+        print('\nSupercell limit set to:')
         print(f'  \033[1;31m{args.supercell_limit}\033[m')
 
     print(col_size*"=")

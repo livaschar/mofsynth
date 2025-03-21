@@ -1,5 +1,5 @@
 # This file is part of MOF-Synth.
-# Copyright (C) 2024 Charalampos G. Livas
+# Copyright (C) 2025 Charalampos G. Livas
 
 # MOF-Synth is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@ import os
 import sys
 import pickle
 from pathlib import Path
-from . modules.mof import MOF
-from . modules.linkers import Linkers
-from . modules.other import (copy, config_from_file,
-                             load_objects, write_txt_results, write_xlsx_results)
+from mofsynth.modules.mof import MOF
+from mofsynth.modules.linkers import Linkers
+from mofsynth.modules.other import (copy, config_from_file,
+                             load_objects, write_xlsx_results)
 
-def main(directory, function, supercell_limit):
+def command_handler(directory, function, supercell_limit):
     r"""
     Acts as a dispatcher, directing the program to execute the specified function.
 

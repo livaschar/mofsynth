@@ -41,3 +41,6 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/livaschar/mofsynth"
+
+[project.scripts]
+mofsynth = "mofsynth.__main__:main"

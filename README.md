@@ -1,17 +1,20 @@
 # MOFSynth
+
 <h1 align="center">
 <!--   <img alt="Logo" src="https://raw.githubusercontent.com/livaschar/mofsynth/main/docs/source/images/final_grey-removebg-preview.png" style="width: 500px;"/> -->
 <!--   <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/main/docs/source/images/final_grey-removebg-preview.png" style="width: 500px;"/> -->
   <img alt="Logo" src="https://github.com/livaschar/mofsynth/blob/main/docs/source/images/mofsynth_logo.svg" style="width: 500px;"/>
 </h1>
 
-
 <h4 align="center">
 
 [![Requires Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=yellow&label=Python&labelColor=black&color=blue)](https://www.python.org/downloads/)
 [![Read the Docs](https://img.shields.io/badge/stable-green?logo=readthedocs&logoColor=blue&label=Read%20the%20Docs&labelColor=black)](https://mofsynth.readthedocs.io)
 [![Documentation Status](https://readthedocs.org/projects/mofsynth/badge/?version=latest)](https://mofsynth.readthedocs.io/en/latest/?badge=latest)
-[![Licensed under GPL-3.0-only](https://img.shields.io/badge/GPL--3.0--only-gold?label=License&labelColor=black)](https://spdx.org/licenses/GPL-3.0-only.html)
+[![PyPI](https://img.shields.io/badge/PyPI-v%202.0.0-blue?style=flat&labelColor=black)](https://pypi.org/project/mofsynth/)
+[![Licensed under GPL-3.0-only](https://img.shields.io/badge/GPL--3.0--only-gold?label=License&labelColor=black)](https://spdx.org/licenses/GPL-3.0-only.html)  
+
+[![Online App](https://img.shields.io/badge/🔥%20MOFSYNTH%20Online-Try%20Now!-red?style=for-the-badge&labelColor=black)](https://mofsynth.website)  
 
 </h4>
 
@@ -28,9 +31,47 @@ minimizing the time and labor traditionally required for these experimental prep
 This allows researchers to focus more on innovative synthesis and experimental validation
 rather than on preparatory tasks.
 
-## 📰 Citing MOFSynth
+## ⚙️  Installation
+
+It is strongly recommended to **perform the installation inside a virtual environment**.
+
 ```sh
-  @article{doi:10.1021/acs.jcim.4c01298,
+python -m venv <venvir_name>
+source <venvir_name>/bin/activate
+```
+
+```sh
+pip install mofsynth
+```
+
+### Requires
+
+To run MOFSynth, the following modules and tools must be present in your system:
+
+1. [**mofid v1.1.0**](https://github.com/snurr-group/mofid): A Python library for MOF identification and characterization.
+2. [**TURBOMOLE v6.5**](https://www.turbomole.org/): A computational chemistry program package.
+
+## 💻 Browser-Based MOFSynth
+
+Easy to use [Web version](https://mofsynth.website) of the tool.
+
+## 📖 Usage example
+
+Check the [tutorial](https://mofsynth.readthedocs.io/en/latest/tutorial.html).
+
+## :warning: Problems?
+
+You can start by [opening an issue](https://github.com/livaschar/mofsynth/issues) or communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
+
+## 📰 Citing MOFSynth
+
+Please consider citing [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jcim.4c01298) or use the following BibTex.
+
+<details>
+<summary>Show BibTex entry</summary>
+
+```bibtex
+@article{doi:10.1021/acs.jcim.4c01298,
   author = {Livas, Charalampos G. and Trikalitis, Pantelis N. and Froudakis, George E.},
   title = {MOFSynth: A Computational Tool toward Synthetic Likelihood Predictions of MOFs},
   journal = {Journal of Chemical Information and Modeling},
@@ -41,37 +82,11 @@ rather than on preparatory tasks.
   doi = {10.1021/acs.jcim.4c01298},
   note ={PMID: 39481084},
   URL = {https://doi.org/10.1021/acs.jcim.4c01298},
-  eprint = {https://doi.org/10.1021/acs.jcim.4c01298}
-  }
+  eprint = {https://doi.org/10.1021/acs.jcim.4c01298}}
 ```
 
-## ⚙️  Installation
-It is strongly recommended to **perform the installation inside a virtual environment**.
-
-```sh
-python -m venv <venvir_name>
-source <venvir_name>/bin/activate
-```
-```sh
-pip install mofsynth
-```
-
-### Requires:
-To run MOFSynth, the following modules and tools must be present in your system:
-1. **mofid**: A Python library for MOF identification and characterization. [snurr-group/mofid ](https://github.com/snurr-group/mofid)
-2. **TURBOMOLE**: A computational chemistry program package.
-   - Ensure turbomole/6.5 is properly installed and configured in your system. Refer to the [TURBOMOLE installation guide](https://www.turbomole.org/).
-   
-
-## 💻 Browser-Based MOFSynth
-Web version of the tool at [link](https://mofsynth.website)
-
-## 📖 Usage example
-Check the [tutorial](https://mofsynth.readthedocs.io/en/latest/tutorial.html).
-
-## :warning: Problems?
-Don't hesitate to communicate via [email](mailto:chemp1167@edu.chemistry.uoc.gr)
+</details>
 
 ## 📑 License
-MOFSynth is released under the [GNU General Public License v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html).
 
+MOFSynth is released under the [GNU General Public License v3.0 only](https://spdx.org/licenses/GPL-3.0-only.html).

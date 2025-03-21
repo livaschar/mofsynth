@@ -1,5 +1,5 @@
 # This file is part of MOF-Synth.
-# Copyright (C) 2024 Charalampos G. Livas
+# Copyright (C) 2025 Charalampos G. Livas
 
 # MOF-Synth is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,10 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from . cli import _transaction_summary, _return_cli_parser
-from . utils import main
+from mofsynth.__cli__ import _transaction_summary, _return_cli_parser
+from mofsynth.__utils__ import command_handler
 
-if __name__ == '__main__':
+def main():
 
     args = _return_cli_parser().parse_args()
     _transaction_summary(args)
@@ -26,10 +26,14 @@ if __name__ == '__main__':
     print('\n')
 
     if inp.upper() == 'Y':
-        main(
+        print(f'\033[1;31m-------------------\033[m')
+        command_handler(
             args.directory,
             args.function,
             args.supercell_limit
             )
     else:
         print('Operation aborted.')
+
+if __name__ == '__main__':
+    main()
