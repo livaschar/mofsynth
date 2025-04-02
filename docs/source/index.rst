@@ -43,7 +43,7 @@ or even identify the most promising options from a vast database.
 Citing MOFSynth
 ------------
 
-Paper under review
+Please consider citing [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jcim.4c01298)
 
 License
 -------
