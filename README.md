@@ -23,11 +23,12 @@ We are excited to announce the release of MOFSynth 3.0, a significant leap forwa
 This new version is fully powered by open-source software, eliminating dependencies on proprietary packages and streamlining deployment across systems.
 
 🚀 What’s New in 3.0:
-Integrated XTB Engine: Seamlessly switch to XTB for rapid and efficient energy calculations and geometry optimizations.
 
-Enhanced Performance: Enjoy faster execution times and improved scalability.
+- **Integrated XTB**: Seamlessly switch to XTB for rapid and efficient energy calculations and geometry optimizations.
 
-Open Science Ready: All dependencies are now open source, making MOFSynth fully transparent and reproducible.
+- **Enhanced Performance**: Enjoy faster execution times and improved scalability.
+
+- **Open Science Ready**: All dependencies are now open source, making MOFSynth fully transparent and reproducible.
 
 ✅ Why Upgrade?
 Whether you're screening thousands of MOFs or performing high-throughput synth-likelihood predictions, MOFSynth 3.0 delivers the performance and flexibility modern computational chemists demand.
