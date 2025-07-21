@@ -48,7 +48,7 @@ pip install mofsynth
 To run MOFSynth, the following modules and tools must be present in your system:
 
 1. [**mofid v1.1.0**](https://github.com/snurr-group/mofid): A Python library for MOF identification and characterization.
-2. [**TURBOMOLE v6.5**](https://www.turbomole.org/): A computational chemistry program package.
+2. [**XTB v6.0.0**](https://github.com/grimme-lab/xtb): A computational chemistry program package.
 
 ## 💻 Browser-Based MOFSynth
 
