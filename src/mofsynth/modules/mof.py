@@ -9,6 +9,8 @@ from mofsynth.modules.other import copy
 
 @dataclass
 class MOF:
+    run_str_sp = ''
+    job_sh_sp = ''
     instances = []
     fault_supercell = []
     fault_fragment = []
@@ -65,7 +67,7 @@ class MOF:
         Explanation
         -----------
         This method sets up various paths necessary for the operation of the MOF instance.
-        It constructs paths for initialization, fragmentation, CIF2Cell, OpenBabel, Turbomole, single point calculations (SP),
+        It constructs paths for initialization, fragmentation, CIF2Cell, OpenBabel, XTB, single point calculations (SP),
         and root-mean-square deviation (RMSD) calculations.
         These paths are derived based on the synthetic path stored in the 'synth_path' attribute of the 'MOF' class
         and the name of the MOF instance.
@@ -79,23 +81,23 @@ class MOF:
             - '/path/to/synth/MOF1/fragmentation'
             - '/path/to/synth/MOF1/cif2cell'
             - '/path/to/synth/MOF1/obabel'
-            - '/path/to/synth/MOF1/turbomole'
-            - '/path/to/synth/MOF1/turbomole/sp'
-            - '/path/to/synth/MOF1/turbomole/rmsd'
+            - '/path/to/synth/MOF1/xtb'
+            - '/path/to/synth/MOF1/xtb/sp'
+            - '/path/to/synth/MOF1/xtb/rmsd'
         """
 
         self.init_path = self.__class__.synth_path / self.name
         self.fragmentation_path = self.init_path / "fragmentation"
         self.cif2cell_path = self.init_path / "cif2cell"
         self.obabel_path = self.init_path / "obabel"
-        self.turbomole_path = self.init_path / "turbomole"
-        self.sp_path = self.turbomole_path / "sp"
-        self.rmsd_path = self.turbomole_path / "rmsd"
+        self.xtb_path = self.init_path / "xtb"
+        self.sp_path = self.xtb_path / "sp"
+        self.rmsd_path = self.xtb_path / "rmsd"
         self.init_path.mkdir(parents=True, exist_ok=True)
         self.fragmentation_path.mkdir(parents=True, exist_ok=True)
         self.cif2cell_path.mkdir(parents=True, exist_ok=True)
         self.obabel_path.mkdir(parents=True, exist_ok=True)
-        self.turbomole_path.mkdir(parents=True, exist_ok=True)
+        self.xtb_path.mkdir(parents=True, exist_ok=True)
         self.sp_path.mkdir(parents=True, exist_ok=True)
         self.rmsd_path.mkdir(parents=True, exist_ok=True)    
     
@@ -208,38 +210,38 @@ class MOF:
             return False, f'Obabel error for {init_file}'
         ''' ----------- '''
     
-        copy(self.obabel_path, self.turbomole_path, "linker.xyz")
+        copy(self.obabel_path, self.xtb_path, "linker.xyz")
         
         return True, ''
             
     def single_point(self):
         r"""
-        Perform a single-point calculation using Turbomole.
+        Perform a single-point calculation using xtb.
 
         Raises
         ------
         Exception
-            If an error occurs while running the Turbomole command.
+            If an error occurs while running the xtb command.
 
         Notes
         -----
-        This function executes a Turbomole command for single-point calculation.
-        The Turbomole command is specified by the `run_str_sp` attribute.
+        This function executes a xtb command for single-point calculation.
+        The xtb command is specified by the `run_str_sp` attribute.
 
         """
 
-        copy(self.turbomole_path, self.sp_path, "linker.xyz")
+        copy(self.xtb_path, self.sp_path, "linker.xyz")
         init_file = self.sp_path / "linker.xyz"
-        final_file = self.sp_path / "final.xyz"
         
-        """ SINGLE POINT CALCULATION """
-        run_str_sp =  f"bash -l -c 'module load turbomole/7.02; x2t {init_file} > coord; uff; t2x -c > {final_file}'"
+        """ SINGLE POINT CALCULATION """        
+        job_sh_path = self.sp_path / MOF.job_sh_sp
+        self.run_str_sp = f'{MOF.run_str_sp} {job_sh_path}'
 
         try:
-            p = subprocess.Popen(run_str_sp, shell=True, cwd=self.sp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            p = subprocess.Popen(self.run_str_sp, shell=True, cwd=self.sp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             p.wait()
         except:
-            return False, 'Turbomole single point error'
+            return False, 'xtb single point error'
 
         return True, ''
 
@@ -311,7 +313,7 @@ class MOF:
             
             Linkers(instance.linker_smiles, instance.name, MOF.path_to_linkers_directory)
 
-            copy(instance.fragmentation_path / "Output" / "MetalOxo", MOF.path_to_linkers_directory / instance.linker_smiles / instance.name, 'linkers.cif')
+            # copy(instance.fragmentation_path / "Output" / "MetalOxo", MOF.path_to_linkers_directory / instance.linker_smiles / instance.name, 'linkers.cif')
             copy(instance.obabel_path, MOF.path_to_linkers_directory / instance.linker_smiles /instance.name, 'linker.xyz')
 
         cls.instances = cls.new_instances
@@ -386,11 +388,11 @@ class MOF:
 
             linker = next((obj for obj in linkers if obj.smiles_code == mof.linker_smiles and obj.mof_name == mof.name), None)
             
-            with open(mof.sp_path / "uffgradient", 'r') as f:
+            with open(mof.sp_path / "check.out", 'r') as f:
                 lines = f.readlines()
             for line in lines:
-                if "cycle" in line:
-                    mof.sp_energy = float(line.split()[6])
+                if "TOTAL ENERGY" in line:
+                    mof.sp_energy = float(line.split()[3])
                     break
 
             if linker != None and linker.opt_status != 'converged':
@@ -449,8 +451,8 @@ class MOF:
         """
         rmsd_result = self.rmsd_path / 'result.txt'
         if not rmsd_result.exists():        
-            copy(best_opt_energy_dict[self.linker_smiles][1], self.rmsd_path, 'final.xyz', 'final_opt.xyz')
-            copy(self.sp_path, self.rmsd_path, 'final.xyz', 'final_sp.xyz')
+            copy(best_opt_energy_dict[self.linker_smiles][1], self.rmsd_path, 'xtbopt.xyz', 'final_opt.xyz')
+            copy(self.sp_path, self.rmsd_path, 'linker.xyz', 'final_sp.xyz')
     
             rmsd = []
             opt_file = self.rmsd_path / 'final_opt.xyz'
