@@ -18,7 +18,7 @@
 </h4>
 
 ## 🔔 Release Note
-**From Classical to Quantum calculations!
+**From Classical to Quantum calculations!**
 
 We are excited to announce the release of MOFSynth 3.0, a significant leap forward in our commitment to speed, accessibility, and scientific reproducibility.
 
