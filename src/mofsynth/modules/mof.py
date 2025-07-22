@@ -231,7 +231,6 @@ class MOF:
         """
 
         copy(self.xtb_path, self.sp_path, "linker.xyz")
-        init_file = self.sp_path / "linker.xyz"
         
         """ SINGLE POINT CALCULATION """        
         job_sh_path = self.sp_path / MOF.job_sh_sp
@@ -391,7 +390,7 @@ class MOF:
             with open(mof.sp_path / "check.out", 'r') as f:
                 lines = f.readlines()
             for line in lines:
-                if "TOTAL ENERGY" in line:
+                if "| TOTAL ENERGY" in line:
                     mof.sp_energy = float(line.split()[3])
                     break
 

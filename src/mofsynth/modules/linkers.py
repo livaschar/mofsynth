@@ -103,43 +103,6 @@ class Linkers:
         -----
         This function updates the optimization settings, runs the optimization, and modifies necessary files.
         """
-
-        # ERROR CHECK
-        # XTB CHANGE
-        uff_conv = self.opt_path / 'uffconverged'
-        uff_not_conv = self.opt_path / 'not.uffconverged'
-        init_file = self.opt_path / "linker.xyz"
-        final_file = self.opt_path /  "xtbopt.xyz.xyz"
-        if uff_not_conv.exists(): # previous opt did not converged
-            rerun = rerun
-        elif uff_conv.exists(): # no need to do further opt
-            return True, ''
-        elif final_file.exists(): # An sp calc happened for a reason
-            rerun = True
-
-        # job_sh_path = self.opt_path / Linkers.job_sh_sp
-        # self.run_str_sp = f'sbatch {job_sh_path}'    
-        # if rerun == False:
-        #     copy(Linkers.config_directory, self.opt_path, Linkers.job_sh_sp)      
-        #     try:
-        #         p = subprocess.Popen(self.run_str_sp, shell=True, cwd=self.opt_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        #         p.wait()
-        #     except:
-        #         return 0, "xtb optimization procedure"
-        
-        # # MIGHT DELETE
-        # if rerun == True:
-        #     original_file = self.opt_path / 'original.xyz'
-        #     init_file.rename(original_file)
-        #     final_file.rename(init_file)
-        
-        # with open(self.opt_path / "control", 'r') as f:
-        #     lines = f.readlines()
-        # words = lines[2].split()
-        # words[0] = str(self.opt_cycles)
-        # lines[2] = ' '.join(words) +'\n'
-        # with open(self.opt_path / "control",'w') as f:
-        #     f.writelines(lines)
         
         copy(Linkers.config_directory, self.opt_path, Linkers.job_sh_opt)
         job_sh_path = self.opt_path / Linkers.job_sh_opt
@@ -170,8 +133,14 @@ class Linkers:
         for linker in linkers_list:
             opt_output_file = linker.opt_path / "check.out"
     
-            with open(opt_output_file, 'r') as f:
-                content = f.read()
+            try:
+                with open(opt_output_file, 'r') as f:
+                    content = f.read()
+            except:
+                linker.opt_status = 'no_output_file'
+                cls.not_converged.append(linker)
+                continue
+
             
             # Check convergence status
             if "GEOMETRY OPTIMIZATION CONVERGED" in content:
@@ -180,7 +149,7 @@ class Linkers:
                 
                 # Extract energy if converged
                 for line in content.split('\n'):
-                    if "TOTAL ENERGY" in line:
+                    if "| TOTAL ENERGY" in line:
                         linker.opt_energy = float(line.split()[3])
                         break
             

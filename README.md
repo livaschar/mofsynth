@@ -18,13 +18,15 @@
 </h4>
 
 ## 🔔 Release Note
+**From Classical to Quantum calculations!
+
 We are excited to announce the release of MOFSynth 3.0, a significant leap forward in our commitment to speed, accessibility, and scientific reproducibility.
 
 This new version is fully powered by open-source software, eliminating dependencies on proprietary packages and streamlining deployment across systems.
 
 🚀 What’s New in 3.0:
 
-- **Integrated XTB**: Seamlessly switch to XTB for rapid and efficient energy calculations and geometry optimizations.
+- **XTB**: Seamlessly switch to XTB for rapid and efficient energy calculations and geometry optimizations.
 
 - **Enhanced Performance**: Enjoy faster execution times and improved scalability.
 
@@ -35,7 +37,7 @@ Whether you're screening thousands of MOFs or performing high-throughput synth-l
 
 Try it today — open source, faster, and ready for your next breakthrough.
 
-## What is MOFSynth
+## What is MOFSynth?
 MOFSynth is a Python package for **MOF synthesizability evaluation**, with
 emphasis on reticular chemistry.
 
