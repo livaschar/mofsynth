@@ -7,64 +7,10 @@ from mofsynth.modules.other import copy
 class Linkers:
     r"""
     Class for managing linker molecules and their optimization.
-
-    Attributes
-    ----------
-    job_sh : str
-        Default job script file name.
-    run_str : str
-        Default run string for optimization.
-    opt_cycles : int
-        Default number of optimization cycles.
-    job_sh_path : str
-        Default path for job script.
-    settings_path : str
-        Default path for settings file.
-    instances : list
-        List to store instances of the Linkers class.
-    converged : list
-        List to store converged linker instances.
-    not_converged : list
-        List to store not converged linker instances.
-    best_opt_energy_dict : dictionary
-        Dictionary containing the smile_codes as a key and value is a list of the opt_energy and the opt_path
-
-    Methods
-    -------
-    change_smiles(smiles)
-        Change the SMILES code of a linker instance.
-
-    opt_settings(run_str, opt_cycles, job_sh=None)
-        Set optimization settings for all linker instances.
-
-    optimize(rerun=False)
-        Optimize the linker structure.
-
-    check_optimization_status(linkers_list)
-        Check the optimization status of linker instances.
-
-    read_linker_opt_energies()
-        Read the optimization energy for a converged linker instance.
-
-    define_the_best_opt_energies()
-        Define the best optimization energy for each SMILES code.
     """
     
     # Initial parameters that can be changed
-    run_str_sp = ''
-    run_str_opt = ''
-    job_sh_sp = ''
-    job_sh_opt = ''
-    opt_cycles = 1
-    
-    # settings_path = os.path.join(os.getcwd(),'input_data/settings.txt')
-    config_path = ''
-    # job_sh_path = os.path.join(os.getcwd(),'input_data')
-    job_sh_path = ''
-    
-    # config dir path
-    config = ''
-
+    opt_cycles = 100
     instances = []
     converged = []
     not_converged = []
@@ -73,13 +19,6 @@ class Linkers:
     def __init__(self, smiles_code, mof_name, Linkers_dir):
         r"""
         Initialize a Linkers instance.
-
-        Parameters
-        ----------
-        smiles_code : str
-            SMILES code of the linker molecule.
-        mof_name : str
-            Name of the associated MOF.
         """
         Linkers.instances.append(self)
 
@@ -90,25 +29,16 @@ class Linkers:
         self.opt_energy = 0
         self.opt_status = 'not_converged'
 
-    def optimize(self, rerun):
+    def optimize(self, rerun, config_directory, run_str_opt, job_sh_opt):
         r"""
         Optimize the linker structure.
-
-        Parameters
-        ----------
-        rerun : bool, optional
-            Whether to run again the uncoverged cases.
-
-        Notes
-        -----
-        This function updates the optimization settings, runs the optimization, and modifies necessary files.
         """
         
-        copy(Linkers.config_directory, self.opt_path, Linkers.job_sh_opt)
-        job_sh_path = self.opt_path / Linkers.job_sh_opt
-        self.run_str_opt = f'sbatch {job_sh_path}'
+        copy(config_directory, self.opt_path, job_sh_opt)
+        job_sh_path = self.opt_path / job_sh_opt
+        command = f'{run_str_opt} {job_sh_path}'
         try:
-            p = subprocess.Popen(self.run_str_opt, shell=True, cwd=self.opt_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            p = subprocess.Popen(command, shell=True, cwd=self.opt_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except:
             return False, "xtb optimization procedure"
         
@@ -161,6 +91,9 @@ class Linkers:
     
     @classmethod
     def define_best_opt_energy(cls):
+        r"""
+        Finds common linkers between MOFs and the lowest energy among them.
+        """
 
         for instance in Linkers.converged:
             if instance.smiles_code not in cls.best_opt_energy_dict:

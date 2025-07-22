@@ -9,8 +9,7 @@ from mofsynth.modules.other import copy
 
 @dataclass
 class MOF:
-    run_str_sp = ''
-    job_sh_sp = ''
+
     instances = []
     fault_supercell = []
     fault_fragment = []
@@ -24,7 +23,6 @@ class MOF:
         cls.root_path = root_path
         cls.path_to_linkers_directory = cls.synth_path / '_Linkers_'
         cls.output_file_name = 'synth_results'
-        cls.results_txt_path = cls.root_path / f'{cls.output_file_name}.txt'
         cls.results_xlsx_path = cls.root_path / f'{cls.output_file_name}.xlsx'
     
     def __init__(self, name):
@@ -214,7 +212,7 @@ class MOF:
         
         return True, ''
             
-    def single_point(self):
+    def single_point(self, run_str_sp, job_sh_sp):
         r"""
         Perform a single-point calculation using xtb.
 
@@ -230,14 +228,12 @@ class MOF:
 
         """
 
-        copy(self.xtb_path, self.sp_path, "linker.xyz")
-        
-        """ SINGLE POINT CALCULATION """        
-        job_sh_path = self.sp_path / MOF.job_sh_sp
-        self.run_str_sp = f'{MOF.run_str_sp} {job_sh_path}'
+        copy(self.xtb_path, self.sp_path, "linker.xyz")       
+        job_sh_path = self.sp_path / job_sh_sp
+        command = f'{run_str_sp} {job_sh_path}'
 
         try:
-            p = subprocess.Popen(self.run_str_sp, shell=True, cwd=self.sp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            p = subprocess.Popen(command, shell=True, cwd=self.sp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             p.wait()
         except:
             return False, 'xtb single point error'

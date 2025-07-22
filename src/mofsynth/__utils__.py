@@ -92,16 +92,13 @@ def run(directory, supercell_limit):
     
     # CONFIGURATION
     MOF.initialize(root_path, synth_folder_path)
-    Linkers.config_directory = root_path / "config_dir"
-    MOF.config_directory = root_path / "config_dir"
-    config_file_path = Linkers.config_directory / "config.yaml"
+    config_directory = root_path / "config_dir"
+    config_file_path = config_directory / "config.yaml"
     result = config_from_file(config_file_path)
     if isinstance(result, str):
         print(f'\033[1;31m\n {result}. Aborting session... \033[m')
         return False
-    Linkers.run_str_opt, Linkers.run_str_sp, Linkers.job_sh_sp, Linkers.job_sh_opt, Linkers.opt_cycles = result
-    MOF.run_str_sp = Linkers.run_str_sp
-    MOF.job_sh_sp = Linkers.job_sh_sp
+    run_str_opt, run_str_sp, job_sh_sp, job_sh_opt, opt_cycles = result
 
     # FIND CIFS
     cifs = []
@@ -130,7 +127,7 @@ def run(directory, supercell_limit):
         else:
             # Copy .cif and job.sh in the mof directory
             copy(user_dir, mof.init_path, f"{mof.name}.cif")
-            copy(MOF.config_directory, mof.sp_path, MOF.job_sh_sp)
+            copy(config_directory, mof.sp_path, job_sh_sp)
 
             # Create supercell, do the fragmentation, extract one linker,
             # calculate single point energy
@@ -148,7 +145,7 @@ def run(directory, supercell_limit):
             if obabel_check is False:
                 MOF.instances.pop()
                 continue            
-            sp_check, _ = mof.single_point()
+            sp_check, _ = mof.single_point(run_str_sp, job_sh_sp)
             if sp_check is False:
                 MOF.instances.pop()
                 continue
@@ -159,7 +156,7 @@ def run(directory, supercell_limit):
     # Proceed to the optimization procedure of every linker
     for linker in Linkers.instances:
         print(f'\n - \033[1;34mLinker under optimization study: {linker.smiles_code}, of {linker.mof_name}\033[m -')
-        linker.optimize(False)
+        linker.optimize(False, config_directory, run_str_opt, job_sh_opt)
     
     # Right instances of MOF class
     with open(root_path / 'cifs.pkl', 'wb') as file:
