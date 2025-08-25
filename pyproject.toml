@@ -34,7 +34,15 @@ dependencies = [
     "pymatgen>=2023.5.10",
     "openpyxl>=3.1.2",
     "rmsd==1.5.1",
-    "pyyaml"
+    "pyyaml",
+	"gunicorn",
+ 	"cloudflared",
+	"flask",
+	"flask_compress",
+	"flask_caching",
+	"apscheduler",
+	"redis",
+	"openpyxl"
 ]
 
 
@@ -44,4 +52,5 @@ Issues = "https://github.com/livaschar/mofsynth/issues"
 Documentation = "https://mofsynth.readthedocs.io/en/latest/"
 
 [project.scripts]
+
 mofsynth = "mofsynth.__main__:main"
