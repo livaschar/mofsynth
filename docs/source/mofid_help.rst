@@ -42,3 +42,12 @@ Complete the installation with these commands:
     python3 set_paths.py
     source /path/to/venvir_name/bin/activate
     pip install .
+
+NOTE
+---------------------------
+
+In some python versions you have to modify the setup.py.
+
+Make sure the install requires lines is as follows:
+
+install_requires=["subprocess32>=3.5.0; python_version<'3.0'"]
