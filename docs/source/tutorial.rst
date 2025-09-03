@@ -50,7 +50,7 @@ The final structure should look like this
    cifs_folder/
    └── example.cif
    config_dir/
-   └── config.txt
+   └── config.yaml
    └── <your_job>.sh
 
 You are ready to run using the following command:
