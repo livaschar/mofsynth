@@ -40,10 +40,12 @@ The config.yaml file should have the following format
 
     optimization:
       command: sbatch
-      file: synth_job.sh
+      file: <your_job>.sh
       cycles: 1000
 
-The final structure should look like this
+You can find an example .sh script in the github repo at mofsynth_/src/mofsynth_/config_dir.
+
+The final structure should look like this:
 
 .. code-block:: text
    
@@ -57,13 +59,13 @@ You are ready to run using the following command:
 
     .. code-block:: console
 
-        $ mofsynth run path/to/cifs_folder 10
+        $ mofsynth exec path/to/cifs_folder 10
 
 
 After the calculations have completed, run:
 
     .. code-block:: console
 
-        $ mofsynth export_results path/to/cifs_folder
+        $ mofsynth report path/to/cifs_folder
 
 Hurray! An **.xlsx file** containing the results will be created in the *mofsynth_tutorial/*
