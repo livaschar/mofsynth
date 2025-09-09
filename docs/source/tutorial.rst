@@ -43,7 +43,7 @@ The config.yaml file should have the following format
       file: <your_job>.sh
       cycles: 1000
 
-You can find an example .sh script in the github repo at mofsynth_/src/mofsynth_/config_dir.
+You can find an example .sh script in the github repo at mofsynth/src/mofsynth/config_dir.
 
 The final structure should look like this:
 
