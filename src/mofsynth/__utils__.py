@@ -24,6 +24,19 @@ from mofsynth.modules.linkers import Linkers
 from mofsynth.modules.other import (copy, config_from_file,
                              load_objects, write_xlsx_results)
 
+import time
+from datetime import datetime
+
+def log_time(start_time, end_time, directory, function):
+    """Writes start and end times into time.txt inside the given directory."""
+    filepath = f"{directory}/runtime.log"
+    with open(filepath, "a") as f:
+        f.write("--------------------------------------------------\n")
+        f.write(f"Function: {function}\n")
+        f.write(f"Start time: {start_time}\n")
+        f.write(f"End time:   {end_time}\n")
+
+
 def command_handler(directory, function, supercell_limit):
     r"""
     Acts as a dispatcher, directing the program to execute the specified function.
@@ -33,7 +46,7 @@ def command_handler(directory, function, supercell_limit):
     directory : str
         The path to the directory containing CIF files.
     function : str
-        Name of the function to run. Supported values: 'main_run', 'check_opt', 'export_results'.
+        Name of the function to run. Supported values: 'exec', 'verify', 'report'.
     supercell_limit: int
         The maximum length for each edge of the unit cell in Angstroms.
 
@@ -44,25 +57,33 @@ def command_handler(directory, function, supercell_limit):
 
 
     Supported Functions:
-    - 'main_run': Executes the main_run function reading files from the given directory
+    - 'exec': Executes the exec function reading files from the given directory
     and the supercell limit
-    - 'check_opt': Executes the check_opt function that checks
+    - 'verify': Executes the verify function that checks
     which optimization runs are converged.
-    - 'export_results': Executes the export_results function and
+    - 'report': Executes the report function and
     creates files with the results.
     """
-    if function == 'run':
-        run(directory, supercell_limit)
-    elif function == 'check_opt':
-        check_opt(directory)
-    elif function == 'export_results':
-        export_results(directory)
+    start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Create a Path object from the directory string
+    user_dir = Path(directory).resolve()
+    # Get the parent directory (root path)
+    root_path = user_dir.parent.resolve()
+
+    if function == 'exec':
+        exec(user_dir, root_path, supercell_limit)
+    elif function == 'verify':
+        verify(root_path)
+    elif function == 'report':
+        report(root_path)
     else:
         print('Wrong function. Aborting...')
         sys.exit()
+    end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_time(start_time, end_time, root_path, function)
 
 
-def run(directory, supercell_limit):
+def exec(user_dir, root_path, supercell_limit):
     r"""
     Perform the synthesizability evaluation for MOFs in the specified directory.
 
@@ -78,12 +99,6 @@ def run(directory, supercell_limit):
         faults in supercell creation and fragmentation procedures.
     """
 
-    # Create a Path object from the directory string
-    user_dir_temp = Path(directory)
-    user_dir = user_dir_temp.resolve()
-    # Get the parent directory (root path)
-    root_path_temp = user_dir.parent
-    root_path = root_path_temp.resolve()
     # Define the new directory path (root_path/Synth_folder)
     synth_folder_path = root_path / "Synth_folder"
     # Create the directory if it doesn't exist
@@ -195,9 +210,7 @@ def run(directory, supercell_limit):
 
     return MOF.instances, Linkers.instances, MOF.fault_fragment, MOF.fault_smiles
 
-
-
-def check_opt(directory):
+def verify(root_path):
     r"""
     Check the optimization status of linker molecules.
 
@@ -206,9 +219,6 @@ def check_opt(directory):
     Tuple
         A tuple containing lists of converged and not converged linker instances.
     """
-    # Get the parent directory (root path)
-    root_path = Path(directory).parent
-
     _, linkers, _ = load_objects(root_path)
 
     converged, not_converged = Linkers.check_optimization_status(linkers)
@@ -223,7 +233,7 @@ def check_opt(directory):
     
     return Linkers.converged, Linkers.not_converged
    
-def export_results(directory):
+def report(root_path):
     r"""
     Export the results of the synthesizability evaluation.
 
@@ -232,7 +242,6 @@ def export_results(directory):
     Tuple
         A tuple containing file paths for the generated text and Excel result files.
     """
-    root_path = Path(directory).parent
     synth_folder_path = root_path / "Synth_folder"
     MOF.initialize(root_path, synth_folder_path)
     cifs, linkers, id_smiles_dict= load_objects(root_path)

@@ -14,7 +14,7 @@ def _return_cli_parser():
 
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
         
-    parser.add_argument('function', help='The function to be called. Choices: run, check_opt, export_results')
+    parser.add_argument('function', help='The function to be called. Choices: exec, verify, report')
 
     parser.add_argument('directory', help='The path to the directory containing all CIF files.')
 
