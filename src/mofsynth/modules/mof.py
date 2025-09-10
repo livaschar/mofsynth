@@ -5,7 +5,7 @@ from pymatgen.io.cif import CifWriter
 from pymatgen.core.structure import IStructure
 import numpy as np
 from mofsynth.modules.other import copy
-
+import signal
 
 @dataclass
 class MOF:
@@ -154,12 +154,27 @@ class MOF:
         The function relies on the `cif2mofid` and `copy` functions.
 
         """
+        class TimeoutException(Exception):
+            pass
+
+        def handler(signum, frame):
+            raise TimeoutException()
+
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(20)  # timeout in seconds
+
+
         init_file = self.fragmentation_path / f"{self.name}_supercell.cif"
 
         if rerun == False:
             try:
                 cif2mofid(init_file, output_path = self.fragmentation_path / "Output")
+            except TimeoutException:
+                print(f"Timeout reached while Fragmentation {self.name}")
+                signal.alarm(0)
+                return False, f'Fragmentation error for {init_file}. Timeout reached.'
             except:
+                signal.alarm(0)
                 return False, f'Fragmentation error for {init_file}'
 
         copy(self.fragmentation_path/"Output/MetalOxo", self.obabel_path, "linkers.cif")
@@ -167,7 +182,9 @@ class MOF:
         file_path = self.fragmentation_path / "Output" / "MetalOxo" / "linkers.cif"
         file_size = file_path.stat().st_size
         if file_size < 550:
+            signal.alarm(0)
             return False, f'Error at fragmentation procedure.'
+        signal.alarm(0)
         return True, ''
  
     def obabel(self):
